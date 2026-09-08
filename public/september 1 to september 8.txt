@@ -1,0 +1,26 @@
+College of Engineering, Chengannur Department of Computer Engineering
+BTech Computer Science and Engineering
+CSD415 Project Phase 1 (2026)
+Periodic Report: 01-09-2026 to 08-09-2026 (Week 3)
+Title: CyberShield AI – Real-Time AI Threat Detection Platform
+Project Group Number :
+
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Who?              | Work Assigned              | Work Done                  | Work Scheduled for next    | Assessment by      |
+|                   |                            |                            | 14 Days                    | Guide              |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Group             | Final system testing, bug  | Conducted system QA and    | Final presentation prep    |                    |
+|                   | fixing, and documentation. | prepared comprehensive     | and project submission.    |                    |
+|                   |                            | literature review.         |                            |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 59       | Draft final project report | Compiled and formatted     | Finalize documentation and |                    |
+| Sreedevi R P      | and presentation.          | the literature review.     | create presentation slides.|                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 65       | System testing, QA, and    | Performed system QA and    | Assist with presentation   |                    |
+| Vishnu V Nair     | assisting with report.     | reviewed literature survey | and project delivery.      |                    |
+|                   |                            | documentation.             |                            |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 66       | Application deployment and | Optimized API performance, | Final deployment checks    |                    |
+| Abhi Raj          | final code optimization.   | fixed UI bugs, and added   | and tech demo preparation. |                    |
+| (Main Developer)  |                            | tech details to review.    |                            |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+

@@ -1,0 +1,25 @@
+College of Engineering, Chengannur Department of Computer Engineering
+BTech Computer Science and Engineering
+CSD415 Project Phase 1 (2026)
+Periodic Report: 01-08-2026 to 31-08-2026 (August)
+Title: CyberShield AI – Real-Time AI Threat Detection Platform
+Project Group Number :
+
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Who?              | Work Assigned              | Work Done                  | Work Scheduled for next    | Assessment by      |
+|                   |                            |                            | 14 Days                    | Guide              |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Group             | Core module development    | Integrated all modules and | Final system testing, bug  |                    |
+|                   | and system integration.    | completed UI dashboard.    | fixing, and documentation. |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 59       | Define phishing dataset    | Built validation dataset   | Draft final project report |                    |
+| Sreedevi R P      | and test URL validation.   | and tested phishing engine | and prepare presentation.  |                    |
+|                   |                            | accuracy.                  |                            |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 65       | Threat feed schema and     | Built network mock data    | System testing, QA, and    |                    |
+| Vishnu V Nair     | telemetry mock setup.      | and configured webhooks.   | assisting with report.     |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 66       | Implement scan engines and | Built React UI, APIs, and  | Application deployment and |                    |
+| Abhi Raj          | Gemini AI integration.     | integrated Gemini AI logic.| final code optimization.   |                    |
+| (Main Developer)  |                            |                            |                            |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+

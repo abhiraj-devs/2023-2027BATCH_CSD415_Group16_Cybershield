@@ -1,0 +1,27 @@
+College of Engineering, Chengannur Department of Computer Engineering
+BTech Computer Science and Engineering
+CSD415 Project Phase 1 (2026)
+Periodic Report: 24-07-2026 to 31-07-2026 (Week 1)
+Title: CyberShield AI – Real-Time AI Threat Detection Platform
+Project Group Number :
+
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Who?              | Work Assigned              | Work Done                  | Work Scheduled for next    | Assessment by      |
+|                   |                            |                            | 14 Days                    | Guide              |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Group             | Project topic finalization | Finalized project scope    | Design architecture and    |                    |
+|                   | and literature survey.     | and completed literature   | begin core module          |                    |
+|                   |                            | survey on SOC AI tools.    | development.               |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 59       | Requirements gathering and | Prepared SRS draft and     | Define dataset features    |                    |
+| Sreedevi R P      | phishing research.         | surveyed phishing URL      | for phishing detection.    |                    |
+|                   |                            | lexical features.          |                            |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 65       | Research on threat feeds   | Studied CVE APIs and       | Design threat feed schema  |                    |
+| Vishnu V Nair     | and malware detection.     | VirusTotal hash lookup     | and network telemetry mock.|                    |
+|                   |                            | workflows.                 |                            |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 66       | System architecture and    | Set up Express backend,    | Implement phishing/malware |                    |
+| Abhi Raj          | project scaffolding.       | React frontend shell, and  | scan engines and Gemini AI |                    |
+| (Main Developer)  |                            | Gemini API SDK setup.      | analysis integration.      |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+

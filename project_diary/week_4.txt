@@ -1,0 +1,21 @@
+College of Engineering, Chengannur
+Department of Computer Engineering
+BTech Computer Science and Engineering
+CSD415 Project Phase 1 (2026)
+Periodic Report: 27-08-26 to 09-09-26 (Week 4)
+Title: CyberShield AI – Real-Time AI Threat Detection Platform
+Project Group Number: 16
+
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Who?              | Work Assigned              | Work Done                  | Work Scheduled for next    | Assessment by      |
+|                   |                            |                            | 14 Days                    | Guide              |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 59       | Submit the Project design  | Completed design report.   | First interim evaluation   |                    |
+| Sreedevi R P      | Report.                    |                            | preparation.               |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 65       | Implementation of the      | Developed user friendly    | Paper writing and          |                    |
+| Vishnu V Nair     | Project features.          | interface and features.    | Publication report.        |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 66       | Implementation of the      | Full stack dev (front &    | Finalize version control   |                    |
+| Abhi Raj          | Project Base Paper.        | backend) of base paper.    | and deploy.                |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
