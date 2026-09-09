@@ -101,37 +101,37 @@ export default function DashboardView({
   return (
     <div className="space-y-6">
       {/* Top Banner / Welcome */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 p-6 rounded-md bg-[#111111] border border-zinc-800">
-        <div className="space-y-2 max-w-2xl">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 sm:gap-6 p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800">
+        <div className="space-y-1.5 sm:space-y-2 max-w-2xl min-w-0">
           <div className="flex items-center space-x-2 text-zinc-500 text-xs font-mono font-semibold uppercase tracking-wider">
             <ShieldCheck size={14} />
             <span>SOC Status: Active</span>
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-zinc-100">
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight text-zinc-100">
             System Overview
           </h1>
-          <p className="text-zinc-400 text-sm leading-relaxed">
+          <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">
             Real-time multi-vector telemetry, Random Forest URL classification, virus hash analysis, and integrated threat intelligence feeds.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 shrink-0">
+        <div className="flex flex-wrap gap-2 shrink-0 w-full sm:w-auto pt-2 sm:pt-0">
           <button
             onClick={() => onNavigate('phishing')}
-            className="px-4 py-2 rounded text-zinc-950 bg-zinc-100 hover:bg-white font-semibold text-xs transition-colors flex items-center space-x-1.5"
+            className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded text-zinc-950 bg-zinc-100 hover:bg-white font-semibold text-xs transition-colors flex items-center justify-center space-x-1.5"
           >
             <span>Scan URL</span>
             <ArrowUpRight size={14} />
           </button>
           <button
             onClick={() => onNavigate('malware')}
-            className="px-4 py-2 rounded bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 text-zinc-300 font-semibold text-xs transition-colors"
+            className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 text-zinc-300 font-semibold text-xs transition-colors text-center"
           >
-            Scan File Hash
+            Scan Hash
           </button>
           <button
             onClick={handleDownloadReport}
-            className="px-4 py-2 rounded bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 text-zinc-300 font-semibold text-xs transition-colors flex items-center space-x-1.5"
+            className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 text-zinc-300 font-semibold text-xs transition-colors flex items-center justify-center space-x-1.5"
           >
             <Download size={14} />
             <span>Export CSV</span>
@@ -328,14 +328,14 @@ export default function DashboardView({
 
           <div className="space-y-0">
             {networkEvents.slice(0, 5).map((evt, idx) => (
-              <div key={evt.id} className={`py-3 flex items-center justify-between ${idx !== 0 ? 'border-t border-zinc-800/50' : ''}`}>
-                <div>
-                  <div className="text-xs font-bold text-zinc-200 font-mono">
+              <div key={evt.id} className={`py-3 flex items-center justify-between gap-2 ${idx !== 0 ? 'border-t border-zinc-800/50' : ''}`}>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] sm:text-xs font-bold text-zinc-200 font-mono truncate">
                     {evt.sourceIp} <span className="text-zinc-600">→</span> {evt.destinationIp}
                   </div>
-                  <div className="text-[11px] text-zinc-500 mt-0.5">{evt.eventType}</div>
+                  <div className="text-[10px] sm:text-[11px] text-zinc-500 mt-0.5 truncate">{evt.eventType}</div>
                 </div>
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <div className="text-[11px] font-mono font-bold text-zinc-300">{evt.bandwidthMbps} Mbps</div>
                   <div className="text-[10px] text-zinc-600 font-mono">{evt.protocol}:{evt.port}</div>
                 </div>

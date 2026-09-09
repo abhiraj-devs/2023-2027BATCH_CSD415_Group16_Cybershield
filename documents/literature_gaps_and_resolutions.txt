@@ -1,29 +1,29 @@
-Based on the provided literature review paper, here are the research gaps identified across the 12 reviewed studies, and how the CyberShield AI project resolves them:
+Based on the provided literature review paper, here are the research gaps identified across the 12 reviewed studies, and how the CyberShield project resolves them:
 
 1. Fragmentation between Detection and Alerting
 Identified Gap: Most phishing and malware detection systems report strong offline accuracy (90–99.8%) but stop at classification. They do not address how a positive detection reaches a human in time to act on it. There is a lack of real-time alerting tied to the detection models.
-Resolution in CyberShield AI: The project implements real-time alerting via Discord and Slack webhook integrations. This tightly couples the lightweight ML/LLM detection models directly to a human-facing notification layer, ensuring detections lead to timely protective action.
+Resolution in CyberShield: The project implements real-time alerting via Discord and Slack webhook integrations. This tightly couples the lightweight ML/LLM detection models directly to a human-facing notification layer, ensuring detections lead to timely protective action.
 
 2. Trade-off between Detection Accuracy and Explainability
 Identified Gap: Raw detection accuracy does not build user trust or improve human detection competence. Purely statistical filters leave an interpretability gap, and users need explanations and skill-building feedback to change behavior.
-Resolution in CyberShield AI: The project integrates the Google Gemini API to provide LLM-assisted analysis. This generates concise, human-readable rationales (e.g., pointing out brand impersonation or suspicious links) alongside every alert, explaining *why* a threat was flagged rather than just providing a bare risk score.
+Resolution in CyberShield: The project integrates the Google Gemini API to provide LLM-assisted analysis. This generates concise, human-readable rationales (e.g., pointing out brand impersonation or suspicious links) alongside every alert, explaining *why* a threat was flagged rather than just providing a bare risk score.
 
 3. Cross-Dataset and Cross-Domain Generalization is Unresolved
 Identified Gap: Models like XGBoost show high accuracy in-distribution (90.7%) but suffer significant drops across different datasets (e.g., down to 77.8%). Adversarial robustness remains an open problem, showing that models struggle when deployed on traffic unlike their training data.
-Resolution in CyberShield AI: The project incorporates a "Crowdsourced Threat Verification" queue in the Phishing view. This human-in-the-loop mechanism allows for continuous model retraining and refinement based on newly observed, user-submitted, zero-day threat URLs, helping the model adapt to real-world traffic. It also includes an XGBoost decision threshold tuner to adapt to different validation needs.
+Resolution in CyberShield: The project incorporates a "Crowdsourced Threat Verification" queue in the Phishing view. This human-in-the-loop mechanism allows for continuous model retraining and refinement based on newly observed, user-submitted, zero-day threat URLs, helping the model adapt to real-world traffic. It also includes an XGBoost decision threshold tuner to adapt to different validation needs.
 
 4. Static and Dynamic Analysis Alone are Insufficient for Fileless/Evasive Threats
 Identified Gap: While combining static, dynamic, and memory-based analysis (as seen in HAP-Analyzer and HFIM) outperforms single-mode analysis for fileless malware, this integration is typically analyst-driven and not packaged for lightweight, automated deployment.
-Resolution in CyberShield AI: The project integrates a "HAP-Analyzer Volatile Memory (RAM) Forensics" breakdown in the Malware Scanner view to expose transient in-memory artifacts. It also adds a "Hybrid CNN-RNN Architecture Toggle" and "HFIM RGB Malware Visualization" to automatically combine spatial (static/visual) and temporal (dynamic/sequential) analysis in a deployable, automated pipeline.
+Resolution in CyberShield: The project integrates a "HAP-Analyzer Volatile Memory (RAM) Forensics" breakdown in the Malware Scanner view to expose transient in-memory artifacts. It also adds a "Hybrid CNN-RNN Architecture Toggle" and "HFIM RGB Malware Visualization" to automatically combine spatial (static/visual) and temporal (dynamic/sequential) analysis in a deployable, automated pipeline.
 
 5. Human and Organizational Factors Remain Decoupled from Technical Tooling
 Identified Gap: Organizational challenges and user detection competence are measurable, but technical detection systems do not incorporate these human-centered signals. They fail to track human-facing metrics alongside technical metrics.
-Resolution in CyberShield AI: The project introduces a "Security Training" view featuring a "User Confidence-Competence Calibration" tool and an "Ecological VR Sandbox Simulation" launcher. It also includes an "11-Factor SDO Risk Assessment Matrix" radar in the "Enterprise Risk" view. These features actively measure, track, and attempt to improve human and organizational readiness directly within the technical dashboard.
+Resolution in CyberShield: The project introduces a "Security Training" view featuring a "User Confidence-Competence Calibration" tool and an "Ecological VR Sandbox Simulation" launcher. It also includes an "11-Factor SDO Risk Assessment Matrix" radar in the "Enterprise Risk" view. These features actively measure, track, and attempt to improve human and organizational readiness directly within the technical dashboard.
 
 6. Economic Justification is Treated Separately from Detection Capability
 Identified Gap: While models like FAIR-ROSI provide granular ways to justify security spending, this economic layer is disconnected from the detection systems' actual performance data, forcing organizations to manually build business cases.
-Resolution in CyberShield AI: The project integrates a "FAIR-ROSI Cybersecurity Investment Calculator" directly into the "Enterprise Risk" view. This allows users to dynamically project Return on Security Investment alongside the platform's active monitoring data.
+Resolution in CyberShield: The project integrates a "FAIR-ROSI Cybersecurity Investment Calculator" directly into the "Enterprise Risk" view. This allows users to dynamically project Return on Security Investment alongside the platform's active monitoring data.
 
 7. Lack of a Single, Lightweight, Integrated Platform
 Identified Gap: The major overarching gap is the absence of a single, accessible architecture that combines ML/LLM detection, explainable real-time alerting, forensic traceability, human-centered training feedback, and economic justification for individuals and small teams.
-Resolution in CyberShield AI: CyberShield AI serves as the unified, web-based (React/Vite, Express.js) cybersecurity monitoring dashboard that integrates all these fragmented capabilities into one accessible, end-to-end operational tool.
+Resolution in CyberShield: CyberShield serves as the unified, web-based (React/Vite, Express.js) cybersecurity monitoring dashboard that integrates all these fragmented capabilities into one accessible, end-to-end operational tool.

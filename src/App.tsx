@@ -11,12 +11,12 @@ import AlertsView from "./components/AlertsView";
 import HistoryView from "./components/HistoryView";
 import SettingsView from "./components/SettingsView";
 import ProfileSettingsView from "./components/ProfileSettingsView";
-import EnterpriseRiskView from "./components/EnterpriseRiskView";
 import TrainingView from "./components/TrainingView";
 import { DashboardSummary, SecurityAlert, NetworkEvent, ThreatItem } from "./types";
 import { fetchDashboardSummary, fetchAlerts, fetchNetworkEvents, fetchThreatIntel } from "./services/api";
+import { AuthProvider } from "./context/AuthContext";
 
-export default function App() {
+function MainApp() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [alerts, setAlerts] = useState<SecurityAlert[]>([]);
@@ -36,18 +36,27 @@ export default function App() {
 
   const loadAppData = async () => {
     try {
-      const [sumData, alertData, netData, tiData] = await Promise.all([
+      const [sumRes, alertRes, netRes, tiRes] = await Promise.allSettled([
         fetchDashboardSummary(),
         fetchAlerts(),
         fetchNetworkEvents(),
         fetchThreatIntel(),
       ]);
-      setSummary(sumData);
-      setAlerts(alertData);
-      setNetworkEvents(netData);
-      setThreatIntel(tiData);
+
+      if (sumRes.status === "fulfilled" && sumRes.value) {
+        setSummary(sumRes.value);
+      }
+      if (alertRes.status === "fulfilled" && alertRes.value) {
+        setAlerts(alertRes.value);
+      }
+      if (netRes.status === "fulfilled" && netRes.value) {
+        setNetworkEvents(netRes.value);
+      }
+      if (tiRes.status === "fulfilled" && tiRes.value) {
+        setThreatIntel(tiRes.value);
+      }
     } catch (err) {
-      console.error("Failed to load app data:", err);
+      console.warn("App data synchronization notice:", err);
     }
   };
 
@@ -88,10 +97,17 @@ export default function App() {
       {activeTab === "threatIntel" && <ThreatIntelView searchQuery={searchQuery} />}
       {activeTab === "alerts" && <AlertsView />}
       {activeTab === "history" && <HistoryView />}
-      {activeTab === "risk" && <EnterpriseRiskView />}
       {activeTab === "training" && <TrainingView />}
       {activeTab === "profile" && <ProfileSettingsView />}
       {activeTab === "settings" && <SettingsView />}
     </Layout>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }

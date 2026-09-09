@@ -29,12 +29,20 @@ export interface PhishingScan {
 export interface MalwareScan {
   id: string;
   filename: string;
+  fileName?: string;
   sha256: string;
+  fileHash?: string;
   scanStatus: 'completed' | 'scanning' | 'failed';
+  status?: string;
   malicious: boolean;
   detectionCount: number;
   totalEngines: number;
+  enginesDetected?: number;
+  enginesTotal?: number;
+  detectionRatio?: number;
   threatName?: string;
+  threatLabel?: string;
+  reportSummary?: string;
   scannedAt: string;
 }
 
@@ -58,6 +66,7 @@ export interface ThreatItem {
   source: string;
   indicatorType: 'CVE' | 'IP' | 'DOMAIN' | 'HASH' | 'URL';
   indicator: string;
+  indicators?: string[];
   threatName: string;
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   description: string;
@@ -76,6 +85,7 @@ export interface SecurityAlert {
   acknowledged: boolean;
   webhookStatus: 'sent' | 'failed' | 'pending' | 'disabled';
   createdAt: string;
+  timestamp?: string;
 }
 
 export interface DashboardSummary {

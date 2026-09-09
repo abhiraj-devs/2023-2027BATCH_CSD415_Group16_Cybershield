@@ -10,8 +10,8 @@ export default function AlertsView() {
   const [testResult, setTestResult] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchAlerts().then(setAlerts).catch(console.error);
-    fetchSettings().then(setSettings).catch(console.error);
+    fetchAlerts().then(setAlerts).catch(() => {});
+    fetchSettings().then(setSettings).catch(() => {});
   }, []);
 
   const handleAck = async (id: string) => {
@@ -37,7 +37,8 @@ export default function AlertsView() {
     setTesting(true);
     setTestResult(null);
     try {
-      const res = await testWebhook(platform);
+      const url = platform === "DISCORD" ? settings.discordWebhookUrl : settings.slackWebhookUrl;
+      const res = await testWebhook(platform, url || "");
       setTestResult(`${platform} test successful: ${res.message}`);
     } catch (e: any) {
       setTestResult(`${platform} test failed: ${e.message}`);
@@ -49,13 +50,13 @@ export default function AlertsView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-md bg-[#111111] border border-zinc-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100 flex items-center space-x-2">
+          <h1 className="text-lg sm:text-xl font-bold text-zinc-100 flex items-center space-x-2">
             <Bell size={20} className="text-zinc-400" />
             <span>SOC Alerting & Integrations</span>
           </h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <p className="text-zinc-400 text-xs sm:text-sm mt-1">
             Manage live security alerts and configure external webhooks.
           </p>
         </div>
@@ -98,7 +99,7 @@ export default function AlertsView() {
                           <p className={`text-xs mt-1 font-mono ${alert.acknowledged ? 'text-zinc-600' : 'text-zinc-400'}`}>
                             {alert.message}
                           </p>
-                          <div className="flex items-center space-x-3 mt-2 text-[10px] font-mono text-zinc-500">
+                          <div className="flex flex-wrap items-center gap-2 mt-2 text-[10px] font-mono text-zinc-500">
                             <span>{new Date(alert.timestamp).toLocaleString()}</span>
                             <span className="uppercase">{alert.source}</span>
                             <span className={`px-1.5 py-0.5 rounded font-bold uppercase ${

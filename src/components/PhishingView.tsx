@@ -11,7 +11,7 @@ export default function PhishingView() {
   const [error, setError] = useState<string | null>(null);
 
   React.useEffect(() => {
-    fetchPhishingHistory().then(setHistory).catch(console.error);
+    fetchPhishingHistory().then(setHistory).catch(() => {});
   }, []);
 
   const handleAnalyze = async (e: React.FormEvent) => {
@@ -41,30 +41,30 @@ export default function PhishingView() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-md bg-[#111111] border border-zinc-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100 flex items-center space-x-2">
+          <h1 className="text-lg sm:text-xl font-bold text-zinc-100 flex items-center space-x-2">
             <ShieldAlert size={20} className="text-zinc-400" />
             <span>Phishing URL Engine</span>
           </h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <p className="text-zinc-400 text-xs sm:text-sm mt-1">
             Random Forest lexical feature extraction coupled with Gemini AI expert threat explanation.
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="flex items-center space-x-2 text-[10px] font-mono text-zinc-400 px-2 py-1.5 rounded bg-zinc-900 border border-zinc-800 uppercase tracking-wider w-fit">
+        <div className="flex flex-wrap gap-2">
+          <div className="flex items-center space-x-2 text-[10px] font-mono text-zinc-400 px-2 py-1.5 rounded bg-zinc-900 border border-zinc-800 uppercase tracking-wider">
             <Cpu size={12} />
-            <span>XGBoost (Cross-Dataset Optimized)</span>
+            <span>XGBoost</span>
           </div>
-          <div className="flex items-center space-x-2 text-[10px] font-mono text-zinc-400 px-2 py-1.5 rounded bg-zinc-900 border border-zinc-800 uppercase tracking-wider w-fit">
+          <div className="flex items-center space-x-2 text-[10px] font-mono text-zinc-400 px-2 py-1.5 rounded bg-zinc-900 border border-zinc-800 uppercase tracking-wider">
             <span>Threshold: 0.85</span>
           </div>
         </div>
       </div>
 
       {/* URL Input Form */}
-      <div className="p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+      <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
         <form onSubmit={handleAnalyze} className="space-y-4">
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <div className="relative w-full">
@@ -82,7 +82,7 @@ export default function PhishingView() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto py-3 sm:py-0 sm:h-[46px] px-6 rounded bg-zinc-100 hover:bg-white text-zinc-950 font-bold text-xs transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 shrink-0"
+              className="w-full sm:w-auto py-3 sm:py-0 sm:h-[46px] px-6 rounded bg-zinc-100 hover:bg-white text-zinc-950 font-bold text-xs transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 shrink-0 cursor-pointer"
             >
               {loading ? (
                 <>
@@ -106,7 +106,7 @@ export default function PhishingView() {
                 key={idx}
                 type="button"
                 onClick={() => setUrlInput(sUrl)}
-                className="px-2 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[10px] text-zinc-400 font-mono transition-colors truncate max-w-xs"
+                className="px-2 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[10px] text-zinc-400 font-mono transition-colors truncate max-w-full sm:max-w-xs cursor-pointer"
               >
                 {sUrl}
               </button>
@@ -243,28 +243,28 @@ export default function PhishingView() {
       )}
 
       {/* Crowdsourced Threat Intelligence Queue */}
-      <div className="p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+      <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
         <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
           <h3 className="text-sm font-bold text-zinc-100">Crowdsourced Threat Verification</h3>
           <span className="text-[10px] text-zinc-500 font-mono uppercase bg-zinc-900 px-2 py-1 rounded">1 Pending Review</span>
         </div>
         <div className="flex flex-col sm:flex-row justify-between sm:items-center p-3 bg-zinc-950 border border-zinc-900 rounded gap-3 sm:gap-0">
-          <div className="flex flex-col">
-            <span className="text-xs font-mono text-zinc-300 truncate max-w-sm">https://verify-billing-update-secure.com</span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-xs font-mono text-zinc-300 truncate max-w-full sm:max-w-sm">https://verify-billing-update-secure.com</span>
             <span className="text-[10px] text-zinc-500 mt-1">Reported by: User-0912 • 10 mins ago</span>
           </div>
-          <div className="flex space-x-2">
-            <button className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 rounded text-[10px] font-bold transition-colors">VERIFY & RETRAIN</button>
-            <button className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 border border-zinc-800 rounded text-[10px] font-bold transition-colors">DISCARD</button>
+          <div className="flex space-x-2 shrink-0">
+            <button className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 rounded text-[10px] font-bold transition-colors cursor-pointer">VERIFY & RETRAIN</button>
+            <button className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 border border-zinc-800 rounded text-[10px] font-bold transition-colors cursor-pointer">DISCARD</button>
           </div>
         </div>
       </div>
 
       {/* Phishing History Table */}
-      <div className="p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+      <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
         <h3 className="text-sm font-bold text-zinc-100 border-b border-zinc-800 pb-3">Scan History</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <table className="w-full text-left border-collapse min-w-[560px]">
             <thead>
               <tr className="border-b border-zinc-800 text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
                 <th className="py-2 px-3 font-normal">Target URL</th>

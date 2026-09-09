@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import crypto from "crypto";
 import axios from "axios";
@@ -7,8 +8,32 @@ import { GoogleGenAI } from "@google/genai";
 const app = express();
 const PORT = 3000;
 
+// Enable CORS for all incoming client and iframe requests
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Explicitly serve favicons, icons and preview images
+app.get(["/favicon.ico", "/favicon.svg", "/cybershield-logo.svg", "/og-image.png", "/apple-touch-icon.png", "/favicon-32x32.png", "/android-chrome-192x192.png", "/android-chrome-512x512.png", "/site.webmanifest"], (req, res) => {
+  const fileName = path.basename(req.path);
+  const publicPath = path.join(process.cwd(), "public", fileName);
+  const distPath = path.join(process.cwd(), "dist", fileName);
+  const filePath = fs.existsSync(publicPath) ? publicPath : (fs.existsSync(distPath) ? distPath : null);
+  if (filePath) {
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    return res.sendFile(filePath);
+  }
+  res.status(404).end();
+});
 
 
 // No Auth middleware
@@ -223,7 +248,7 @@ let db: {
   threatIntel: [
     {
       id: "ti_1",
-      source: "CyberShield AI",
+      source: "CyberShield",
       indicatorType: "CVE" as const,
       indicator: "CVE-2026-1042",
       threatName: "Windows Kernel Privilege Escalation Vulnerability",
@@ -235,7 +260,7 @@ let db: {
     },
     {
       id: "ti_2",
-      source: "CyberShield AI",
+      source: "CyberShield",
       indicatorType: "CVE" as const,
       indicator: "CVE-2026-0881",
       threatName: "Apache Log4j Remote Command Injection",
@@ -297,16 +322,125 @@ app.get("/api/health", (req, res) => {
   res.json({ success: true, status: "healthy", timestamp: new Date().toISOString() });
 });
 
+// --- OTP In-Memory Storage ---
+const otpStore: Record<string, { otp: string; expiresAt: number; purpose: string }> = {};
+
 // Auth
+app.post("/api/auth/send-otp", (req, res) => {
+  const { email, purpose } = req.body;
+  if (!email || typeof email !== "string" || !email.includes("@")) {
+    return res.status(400).json({ success: false, error: { message: "Valid email address is required" } });
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  otpStore[normalizedEmail] = {
+    otp,
+    expiresAt,
+    purpose: purpose || "authentication",
+  };
+
+  console.log(`[CyberShield Mailer] OTP for ${normalizedEmail}: ${otp}`);
+
+  res.json({
+    success: true,
+    data: {
+      message: `Verification OTP dispatched to ${normalizedEmail}.`,
+      // Return otpCode so user can test and authenticate immediately in the applet preview
+      otpCode: otp,
+      expiresInSeconds: 600,
+      email: normalizedEmail,
+    },
+  });
+});
+
+app.post("/api/auth/verify-otp", (req, res) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) {
+    return res.status(400).json({ success: false, error: { message: "Email and 6-digit OTP are required" } });
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+  const stored = otpStore[normalizedEmail];
+
+  if (!stored) {
+    return res.status(400).json({ success: false, error: { message: "No active OTP found. Please request a new OTP." } });
+  }
+
+  if (Date.now() > stored.expiresAt) {
+    delete otpStore[normalizedEmail];
+    return res.status(400).json({ success: false, error: { message: "OTP has expired. Please request a new code." } });
+  }
+
+  if (stored.otp !== otp.toString().trim()) {
+    return res.status(400).json({ success: false, error: { message: "Incorrect OTP. Please check your email and try again." } });
+  }
+
+  // Clear used OTP
+  delete otpStore[normalizedEmail];
+
+  const isAdmin = normalizedEmail === "abhirajcsecec@gmail.com";
+  const role = isAdmin ? "admin" : "user";
+
+  // Check or register in memory
+  let existingUser = db.users.find(u => u.email.toLowerCase() === normalizedEmail);
+  if (!existingUser) {
+    existingUser = {
+      id: "usr_" + Date.now(),
+      name: normalizedEmail.split("@")[0],
+      email: normalizedEmail,
+      role: isAdmin ? "Administrator" : "Analyst",
+    };
+    db.users.push(existingUser);
+  }
+
+  res.json({
+    success: true,
+    data: {
+      verified: true,
+      email: normalizedEmail,
+      role,
+      user: existingUser,
+      token: "cs_token_" + crypto.randomBytes(16).toString("hex"),
+      message: "Email verified successfully via OTP.",
+    },
+  });
+});
+
+app.post("/api/auth/delete-account", (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, error: { message: "Email is required to delete account" } });
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+  db.users = db.users.filter(u => u.email.toLowerCase() !== normalizedEmail);
+  delete otpStore[normalizedEmail];
+
+  res.json({
+    success: true,
+    message: `Account for ${normalizedEmail} successfully purged.`,
+  });
+});
+
 app.post("/api/auth/login", (req, res) => {
   const { email, password } = req.body;
   if (!email) {
     return res.status(400).json({ success: false, error: { code: "INVALID_CREDENTIALS", message: "Email is required" } });
   }
+  const normalizedEmail = email.toLowerCase().trim();
+  const isAdmin = normalizedEmail === "abhirajcsecec@gmail.com";
   res.json({
     success: true,
     data: {
-      user: db.users[0],
+      user: {
+        id: "usr_" + Date.now(),
+        name: normalizedEmail.split("@")[0],
+        email: normalizedEmail,
+        role: isAdmin ? "Administrator" : "Analyst",
+      },
       token: "cs_token_" + crypto.randomBytes(16).toString("hex"),
     },
     message: "Login successful",
@@ -315,7 +449,14 @@ app.post("/api/auth/login", (req, res) => {
 
 app.post("/api/auth/register", (req, res) => {
   const { name, email } = req.body;
-  const newUser = { id: "usr_" + Date.now(), name: name || "Analyst", email: email || "user@cybershield.ai", role: "Analyst" };
+  const normalizedEmail = (email || "user@cybershield.ai").toLowerCase().trim();
+  const isAdmin = normalizedEmail === "abhirajcsecec@gmail.com";
+  const newUser = { 
+    id: "usr_" + Date.now(), 
+    name: name || normalizedEmail.split("@")[0], 
+    email: normalizedEmail, 
+    role: isAdmin ? "Administrator" : "Analyst" 
+  };
   db.users.push(newUser);
   res.json({
     success: true,
@@ -420,8 +561,8 @@ app.post("/api/phishing/analyze", async (req, res) => {
         if (aiRes.text) {
           aiExplanation = aiRes.text.trim();
         }
-      } catch (err) {
-        console.error("Gemini explanation error:", err);
+      } catch (err: any) {
+        console.warn("Gemini explanation API fallback triggered (likely high demand).", err?.message);
       }
     }
 
@@ -502,8 +643,8 @@ app.post("/api/malware/scan", async (req, res) => {
       detectionCount = data.last_analysis_stats.malicious;
       malicious = detectionCount > 0;
       threatName = malicious ? "Malicious File Detected" : undefined;
-    } catch (error) {
-      console.error("VirusTotal API error:", error);
+    } catch (error: any) {
+      console.warn("VirusTotal API notice:", error?.message);
       // Fallback to simulation if API fails
       malicious = computedHash.startsWith("a81d") || computedHash.startsWith("dead") || computedHash.startsWith("c0de");
       detectionCount = malicious ? Math.floor(Math.random() * 25) + 12 : 0;
@@ -579,16 +720,16 @@ app.get("/api/network/summary", (req, res) => {
   });
 });
 
-// Threat Intelligence (CyberShield AI & Feed)
+// Threat Intelligence (CyberShield & Feed)
 app.get("/api/threat-intelligence", (req, res) => {
   res.json({ success: true, data: db.threatIntel });
 });
 
 app.post("/api/threat-intelligence/refresh", (req, res) => {
-  // Simulate fetching latest CyberShield AI items
+  // Simulate fetching latest CyberShield items
   const newItem = {
     id: "ti_" + Date.now(),
-    source: "CyberShield AI",
+    source: "CyberShield",
     indicatorType: "CVE" as const,
     indicator: "CVE-2026-2910",
     threatName: "OpenSSL Remote Cipher Decryption Flaw",
@@ -658,6 +799,18 @@ app.delete("/api/history", (req, res) => {
   res.json({ success: true, message: "History cleared successfully" });
 });
 
+// Explicit API 404 & Error Handler
+app.use("/api", (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.warn("API notice:", err?.message);
+  if (!res.headersSent) {
+    res.status(500).json({ success: false, error: { message: err?.message || "Internal server error" } });
+  }
+});
+
+app.use("/api/*", (req, res) => {
+  res.status(404).json({ success: false, error: { message: `API route ${req.originalUrl} not found` } });
+});
+
 // Vite middleware setup for development / static in production
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
@@ -675,7 +828,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`CyberShield AI Server running on http://localhost:${PORT}`);
+    console.log(`CyberShield Server running on http://localhost:${PORT}`);
   });
 }
 

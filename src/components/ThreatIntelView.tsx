@@ -65,7 +65,9 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
     fetchThreatIntel().then(data => {
       setIntel(data);
       setLoading(false);
-    }).catch(console.error);
+    }).catch(() => {
+      setLoading(false);
+    });
   }, []);
 
   const handleRefresh = async () => {
@@ -89,13 +91,13 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-md bg-[#111111] border border-zinc-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100 flex items-center space-x-2">
+          <h1 className="text-lg sm:text-xl font-bold text-zinc-100 flex items-center space-x-2">
             <Globe size={20} className="text-zinc-400" />
             <span>Threat Intelligence Feeds</span>
           </h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <p className="text-zinc-400 text-xs sm:text-sm mt-1">
             Aggregated IoCs and CVEs from CISA, MITRE, and global SOC networks.
           </p>
         </div>
@@ -103,7 +105,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
         <button
           onClick={handleRefresh}
           disabled={refreshing}
-          className="w-full md:w-auto justify-center px-4 py-2 rounded bg-zinc-100 hover:bg-white text-zinc-950 font-bold text-xs transition-colors flex items-center space-x-2 disabled:opacity-50"
+          className="w-full md:w-auto justify-center px-4 py-2.5 sm:py-2 rounded bg-zinc-100 hover:bg-white text-zinc-950 font-bold text-xs transition-colors flex items-center space-x-2 disabled:opacity-50 cursor-pointer"
         >
           <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
           <span>SYNC FEEDS</span>
@@ -127,19 +129,19 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
               {filteredIntel.map(item => (
                 <div key={item.id} className="rounded-md bg-[#111111] border border-zinc-800 overflow-hidden transition-all hover:border-zinc-700">
                   <div 
-                    className="p-4 cursor-pointer flex items-center justify-between"
+                    className="p-3.5 sm:p-4 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0"
                     onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded ${
+                    <div className="flex items-start sm:items-center space-x-3 min-w-0">
+                      <div className={`p-2 rounded shrink-0 mt-0.5 sm:mt-0 ${
                         item.severity === 'CRITICAL' ? 'bg-red-500/10 text-red-500' :
                         item.severity === 'HIGH' ? 'bg-orange-500/10 text-orange-500' : 'bg-blue-500/10 text-blue-500'
                       }`}>
                         {item.severity === 'CRITICAL' ? <AlertTriangle size={16} /> : <ShieldAlert size={16} />}
                       </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-zinc-200">{item.threatName}</h4>
-                        <div className="flex items-center space-x-2 mt-1">
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-bold text-zinc-200 truncate">{item.threatName}</h4>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1">
                           <span className="text-[10px] text-zinc-500 font-mono">{new Date(item.publishedAt).toLocaleDateString()}</span>
                           <span className="text-[10px] px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded font-mono text-zinc-400">{item.source}</span>
                           {item.cveId && (
@@ -148,7 +150,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center justify-between sm:justify-end space-x-4 shrink-0 pl-11 sm:pl-0">
                       <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
                         item.severity === 'CRITICAL' ? 'text-red-500 bg-red-500/10 border border-red-500/20' :
                         item.severity === 'HIGH' ? 'text-orange-500 bg-orange-500/10 border border-orange-500/20' : 

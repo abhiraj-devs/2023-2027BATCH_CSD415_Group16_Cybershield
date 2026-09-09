@@ -18,8 +18,8 @@ export default function HistoryView() {
       ]);
       setPhishingHistory(phish);
       setMalwareHistory(mal);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Handled with empty fallback arrays
     } finally {
       setLoading(false);
     }
@@ -31,13 +31,13 @@ export default function HistoryView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-md bg-[#111111] border border-zinc-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100 flex items-center space-x-2">
+          <h1 className="text-lg sm:text-xl font-bold text-zinc-100 flex items-center space-x-2">
             <FileText size={20} className="text-zinc-400" />
             <span>Audit & Scan History</span>
           </h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <p className="text-zinc-400 text-xs sm:text-sm mt-1">
             Historical logs of all phishing and malware analyses.
           </p>
         </div>
@@ -45,19 +45,19 @@ export default function HistoryView() {
         <button 
           onClick={loadData}
           disabled={loading}
-          className="flex items-center space-x-2 text-[10px] font-mono text-zinc-400 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 uppercase tracking-wider transition-colors disabled:opacity-50"
+          className="flex items-center justify-center space-x-2 text-[10px] font-mono text-zinc-400 px-3 py-2 sm:py-1.5 rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer w-full sm:w-auto"
         >
           <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
           <span>SYNC LOGS</span>
         </button>
       </div>
 
-      <div className="p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+      <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
         {/* Tabs */}
-        <div className="flex space-x-4 border-b border-zinc-800 pb-4">
+        <div className="flex flex-wrap gap-2 border-b border-zinc-800 pb-4">
           <button
             onClick={() => setActiveTab('phishing')}
-            className={`px-4 py-2 rounded text-xs font-bold font-mono tracking-wider transition-colors flex items-center space-x-2 ${
+            className={`px-4 py-2 rounded text-xs font-bold font-mono tracking-wider transition-colors flex items-center space-x-2 cursor-pointer ${
               activeTab === 'phishing' 
                 ? 'bg-zinc-100 text-zinc-950' 
                 : 'bg-zinc-900 text-zinc-500 hover:text-zinc-300'
@@ -68,7 +68,7 @@ export default function HistoryView() {
           </button>
           <button
             onClick={() => setActiveTab('malware')}
-            className={`px-4 py-2 rounded text-xs font-bold font-mono tracking-wider transition-colors flex items-center space-x-2 ${
+            className={`px-4 py-2 rounded text-xs font-bold font-mono tracking-wider transition-colors flex items-center space-x-2 cursor-pointer ${
               activeTab === 'malware' 
                 ? 'bg-zinc-100 text-zinc-950' 
                 : 'bg-zinc-900 text-zinc-500 hover:text-zinc-300'
@@ -80,9 +80,9 @@ export default function HistoryView() {
         </div>
 
         {/* Content */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
           {activeTab === 'phishing' ? (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[560px]">
               <thead>
                 <tr className="border-b border-zinc-800 text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
                   <th className="py-3 px-4 font-normal">Target URL</th>
@@ -116,7 +116,7 @@ export default function HistoryView() {
               </tbody>
             </table>
           ) : (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[560px]">
               <thead>
                 <tr className="border-b border-zinc-800 text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
                   <th className="py-3 px-4 font-normal">File / Hash</th>

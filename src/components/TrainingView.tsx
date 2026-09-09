@@ -11,13 +11,13 @@ export default function TrainingView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-md bg-[#111111] border border-zinc-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100 flex items-center space-x-2">
+          <h1 className="text-lg sm:text-xl font-bold text-zinc-100 flex items-center space-x-2">
             <BookOpen size={20} className="text-zinc-400" />
             <span>Security Training & Simulation</span>
           </h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <p className="text-zinc-400 text-xs sm:text-sm mt-1">
             Ecological workspace simulations and cognitive assessment.
           </p>
         </div>
@@ -25,7 +25,7 @@ export default function TrainingView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Paper 1: Confidence-Competence Gap */}
-        <div className="p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+        <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
           <h3 className="text-sm font-bold text-zinc-100 border-b border-zinc-800 pb-2 flex items-center gap-2">
             <BrainCircuit size={16} className="text-purple-500" />
             <span>Confidence-Competence Calibration</span>
@@ -39,7 +39,7 @@ export default function TrainingView() {
             </div>
             <button 
               onClick={() => setTestScore(42.5)} 
-              className="w-full py-3 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-bold text-zinc-200 transition-colors"
+              className="w-full py-3 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-bold text-zinc-200 transition-colors cursor-pointer"
             >
               RUN OBJECTIVE ASSESSMENT
             </button>
@@ -53,7 +53,7 @@ export default function TrainingView() {
         </div>
 
         {/* Paper 12: Ecological VR Simulation */}
-        <div className="p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+        <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
           <h3 className="text-sm font-bold text-zinc-100 border-b border-zinc-800 pb-2 flex items-center gap-2">
             <Target size={16} className="text-emerald-500" />
             <span>Ecological VR Sandbox</span>

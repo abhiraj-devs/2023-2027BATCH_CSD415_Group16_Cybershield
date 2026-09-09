@@ -4,7 +4,7 @@ import { Joyride, Step } from "react-joyride";
 const steps: any[] = [
   {
     target: "#app-header",
-    content: "Welcome to CyberShield AI! This is your control center header.",
+    content: "Welcome to CyberShield! This is your control center header.",
     disableBeacon: true,
   },
   {

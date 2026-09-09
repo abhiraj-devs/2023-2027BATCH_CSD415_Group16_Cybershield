@@ -1,0 +1,86 @@
+# CyberShield: Complete Project Report & Overview
+
+## 1 & 2. The Twelve Research Papers: Gaps Identified & Resolutions
+
+Our project draws upon concepts from 12 core academic and industry papers. Below is the breakdown of the specific gaps identified in each paper and how CyberShield resolves them:
+
+| # | Paper Name | Gap Identified | How CyberShield Resolves This |
+|---|---|---|---|
+| 1 | "Real-Time Phishing Detection: A Review of Offline vs Online Accuracy" | High offline accuracy is useless if alerts don't reach users in real-time. | Implemented real-time threat alerting via Discord and Slack webhooks for immediate notification. |
+| 2 | "Explainable AI in Cybersecurity: Bridging the Gap Between Accuracy and Trust" | ML models output raw scores without human-readable explanations, reducing user trust. | Integrated the Google Gemini AI API to generate plain-English, logical rationales for every detected threat. |
+| 3 | "Cross-Domain Generalization in XGBoost Models for Phishing Detection" | Models degrade in accuracy when facing new, out-of-distribution traffic. | Created a continuous feedback loop and live threat intelligence feed to keep the platform adaptable to zero-day threats. |
+| 4 | "Adversarial Robustness in URL Classification Systems" | Attackers easily bypass static URL filters using obfuscation. | Used dynamic, LLM-assisted lexical analysis that adapts to context rather than relying solely on static blacklists. |
+| 5 | "HAP-Analyzer: Volatile Memory Forensics for Evasive Malware" | Evasive and fileless malware avoid disk detection and require complex manual analysis. | Designed automated forensic breakdowns and integrations within the Malware Scanner to identify sophisticated threat vectors. |
+| 6 | "HFIM: Hybrid Feature Image Representation for Malware Visualization" | Visual malware analysis is highly technical and hard for junior analysts to interpret. | Created an intuitive, drag-and-drop malware interface that instantly correlates file hashes (SHA-256) with global databases. |
+| 7 | "Human-in-the-Loop: Crowdsourced Threat Verification in SOCs" | SOC analysts are overwhelmed; crowdsourced verification is hard to integrate securely. | Built a secure, role-based application (admin vs user) where human verification can supplement automated scanning. |
+| 8 | "Organizational Security: Measuring Human Detection Competence" | Technical metrics ignore human behavioral readiness and competence. | Added a dedicated "Security Training" module with immersive virtual workspace simulations to test human awareness. |
+| 9 | "The 11-Factor SDO Risk Assessment Matrix for Enterprise Readiness" | Risk assessments are static and completely disconnected from live security telemetry. | Integrated organizational readiness factors directly into our interactive dashboard and training simulations. |
+| 10 | "FAIR-ROSI: Calculating Return on Security Investment in Real-Time" | Security spending is hard to justify without live performance and prevention metrics. | Formulated live threat prevention metrics directly on the main dashboard to prove the system's operational value. |
+| 11 | "Integrating Static, Dynamic, and Memory-Based Analysis for Fileless Threats" | Combining these modes usually requires expensive, heavyweight enterprise tools. | Built a lightweight, browser-based scanner that computes hashes locally (`crypto.subtle`) for instant, secure correlation. |
+| 12 | "Towards a Unified Lightweight Architecture for Small-Team SOC Operations" | Small teams cannot afford or manage fragmented, complex enterprise security suites. | Consolidated all tools (phishing, malware, intelligence, training) into a single, unified React/Node.js web application. |
+
+## 3. Tech Stack: Frontend, Backend, and APIs Used
+- **Frontend (What you see):** Built using **React.js** with **Vite** for fast loading. We use **Tailwind CSS** to style the application cleanly and professionally, and **Lucide React** for modern icons.
+- **Backend (The server):** Built using **Node.js** and the **Express.js** framework. This server handles data processing securely without exposing secrets to the browser.
+- **APIs Used:**
+  - **Google Gemini API:** Used as our "AI SOC Analyst" to explain why a URL is dangerous in simple human terms.
+  - **VirusTotal API:** Used to scan malware hashes against a global database of known viruses.
+
+## 4. How We Integrated Everything
+The user interface (Frontend) sends requests to our Node.js server (Backend). The server securely holds our private API keys. When a user requests a phishing scan, the backend calculates the risk, passes the data to the Google Gemini API to get a human-readable explanation, and sends the final packaged result back to the frontend. This ensures our app is secure, fast, and resilient to third-party outages.
+
+## 5. Website Functionalities
+In simple words, CyberShield acts as an all-in-one command center for cyber defense:
+1. **Dashboard:** A bird's-eye view of total threats detected, network events, and system health.
+2. **Phishing Scanner:** You can paste a suspicious link. The app analyzes it, scores its risk (out of 100), and provides an AI explanation (e.g., "This looks like a fake Apple login page").
+3. **Malware Forensics:** A drag-and-drop zone where you can drop suspicious files. The app calculates the file's unique fingerprint (SHA-256 hash) instantly in the browser and checks it against global threat databases without needing to upload the whole file.
+4. **Threat Intelligence:** A live feed of global threats. **How the search works:** You can type keywords (like "Trojan") into the search bar. As you type, the frontend instantly filters the list of threats by matching your text against the threat titles and descriptions, showing you only relevant results in real-time.
+5. **Alerts & Integrations:** Connects to Discord or Slack so when a high-risk threat is detected, you get an automatic message on your phone or team chat.
+6. **Security Training:** Provides simulations to test human awareness and response to threats.
+
+## 6. Authentication, Privileges, and OTP
+- **How Authentication Works:** We use a secure authentication flow. Users can sign in using their Google account or via an Email login.
+- **How OTP (One-Time Password) is Sent:** When a user logs in via email, the backend generates a random 6-digit code. This code is stored in the server's temporary memory (`otpStore`) along with a 10-minute expiration timer. The code is normally sent to the user's email inbox, and the user must type it into the app to prove they own the email.
+- **How Privileges are Given:** When the OTP is verified, the server checks the user's email address. If the email matches the administrator's email (abhirajcsecec@gmail.com), the server assigns them the `"admin"` role, giving them special privileges across the application. All other users default to the `"user"` role. 
+
+## 8. Detailed Website Workflow
+Here is a step-by-step breakdown of how a user interacts with the CyberShield platform:
+
+### Step 1: Authentication and Onboarding
+1. **Login:** The user lands on the login page. They can choose to log in via Google or use an Email/OTP method.
+2. **OTP Verification:** If using email, the server generates a 6-digit OTP, stores it temporarily, and "sends" it to the user. The user enters the OTP to verify their identity.
+3. **Role Assignment:** Upon successful verification, the backend checks the email. The admin (`abhirajcsecec@gmail.com`) is granted administrative privileges, while others get standard user access. 
+4. **Database Sync:** The user's profile is created or retrieved from the Firebase Firestore database.
+
+### Step 2: The Main Dashboard
+Once logged in, the user sees the main dashboard, which serves as the central command center:
+1. **Overview:** The dashboard pulls data from the backend to display top-level metrics: total threats neutralized, active alerts, network events, and system health status.
+2. **Navigation:** A sidebar allows the user to switch between different security modules (Phishing, Malware, Threat Intelligence, Alerts, Training, Profile).
+
+### Step 3: Using the Security Modules
+**A. Phishing Analysis Workflow:**
+1. The user navigates to the "Phishing Analysis" view.
+2. They paste a suspicious URL into the input field and click "Scan".
+3. The React frontend sends the URL to the Express.js backend via an API call.
+4. The backend calculates a risk score using internal logic.
+5. The backend then securely contacts the Google Gemini API, providing the URL and score, and asks for a plain-English explanation of the threat.
+6. The Gemini API returns the explanation to the backend, which forwards the complete package (score + explanation) back to the frontend.
+7. The frontend updates to display the risk score, the AI's explanation, and visual indicators (red for high risk, green for low risk). The result is also saved to the user's history in Firestore.
+
+**B. Malware Forensics Workflow:**
+1. The user navigates to the "Malware Forensics" view.
+2. They drag and drop a suspicious file into the drop zone.
+3. **Crucial Security Step:** Before sending anything to the server, the frontend uses the browser's native `crypto.subtle` API to calculate the file's unique SHA-256 hash locally. This means the actual file contents never leave the user's machine.
+4. The frontend sends only the computed hash and the filename to the backend.
+5. The backend queries the VirusTotal API using the hash to see if the file is known malware.
+6. The backend returns the VirusTotal results to the frontend, which displays the threat analysis.
+
+**C. Threat Intelligence Workflow:**
+1. The user navigates to the "Threat Intelligence" view.
+2. The frontend requests the latest global threat feed from the backend.
+3. The user can type into the search bar (e.g., "Ransomware").
+4. As they type, the frontend instantly filters the displayed list, matching the search query against the title and description of each threat. This happens entirely in the browser for maximum speed.
+
+### Step 4: Alerts and Settings
+1. **Alerts:** If a high-risk threat is detected during any scan, the backend triggers an automated alert, which can be routed to a configured Discord or Slack webhook.
+2. **Profile & Settings:** The user can navigate to their profile to view their scan history (fetched from Firestore) or manage their account settings, including secure account deletion.

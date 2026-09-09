@@ -27,14 +27,18 @@ export default function NetworkView() {
 
   const loadData = async () => {
     try {
-      const [evData, sumData] = await Promise.all([
+      const [evRes, sumRes] = await Promise.allSettled([
         fetchNetworkEvents(),
         fetchNetworkSummary()
       ]);
-      setEvents(evData);
-      setSummary(sumData);
-    } catch (err) {
-      console.error(err);
+      if (evRes.status === "fulfilled" && evRes.value) {
+        setEvents(evRes.value);
+      }
+      if (sumRes.status === "fulfilled" && sumRes.value) {
+        setSummary(sumRes.value);
+      }
+    } catch {
+      // Safe fallback handled in api service
     }
   };
 
@@ -53,20 +57,20 @@ export default function NetworkView() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-md bg-[#111111] border border-zinc-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100 flex items-center space-x-2">
+          <h1 className="text-lg sm:text-xl font-bold text-zinc-100 flex items-center space-x-2">
             <Radio size={20} className="text-zinc-400" />
-            <span>Network Telemetry & Traffic Analysis</span>
+            <span>Network Telemetry</span>
           </h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <p className="text-zinc-400 text-xs sm:text-sm mt-1">
             Real-time packet inspection and anomaly detection across all endpoints.
           </p>
         </div>
 
         <button 
           onClick={handleRefresh}
-          className="flex items-center space-x-2 text-[10px] font-mono text-zinc-400 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 uppercase tracking-wider transition-colors"
+          className="flex items-center justify-center space-x-2 text-[10px] font-mono text-zinc-400 px-3 py-2 sm:py-1.5 rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 uppercase tracking-wider transition-colors w-full sm:w-auto"
         >
           <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
           <span>Force Refresh</span>
@@ -105,7 +109,7 @@ export default function NetworkView() {
         </div>
       </div>
 
-      <div className="p-5 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+      <div className="p-4 sm:p-5 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
         <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
           <h3 className="text-sm font-bold text-zinc-100">Live Traffic Feed</h3>
           <div className="flex items-center space-x-2 text-[10px] font-mono text-emerald-500 uppercase tracking-wider">
@@ -113,8 +117,8 @@ export default function NetworkView() {
             <span>Streaming</span>
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <table className="w-full text-left border-collapse min-w-[640px]">
             <thead>
               <tr className="border-b border-zinc-800 text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
                 <th className="py-2 px-3 font-normal">Event Type</th>

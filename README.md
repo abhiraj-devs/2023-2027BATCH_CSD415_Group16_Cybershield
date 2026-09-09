@@ -1,7 +1,7 @@
-# CyberShield AI
+# CyberShield
 
 ## Overview
-CyberShield AI is a comprehensive cybersecurity monitoring dashboard designed to aggregate, analyze, and visualize security threats in real-time. It leverages AI to provide expert analysis on potential security incidents, helping SOC analysts and IT administrators maintain a secure environment.
+CyberShield is a comprehensive cybersecurity monitoring dashboard designed to aggregate, analyze, and visualize security threats in real-time. It leverages AI to provide expert analysis on potential security incidents, helping SOC analysts and IT administrators maintain a secure environment.
 
 ## Architecture
 
