@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Radio, Activity, ArrowUpRight, ShieldAlert, Cpu, RefreshCw, Terminal } from "lucide-react";
+import { Radio, Activity, ArrowUpRight, ShieldAlert, Cpu, RefreshCw, Terminal, Globe } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { NetworkEvent } from "../types";
 import { fetchNetworkEvents, fetchNetworkSummary } from "../services/api";
@@ -24,6 +24,10 @@ export default function NetworkView() {
   const [events, setEvents] = useState<NetworkEvent[]>([]);
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [chartData, setChartData] = useState<any[]>(Array.from({ length: 20 }, (_, i) => ({
+    time: new Date(Date.now() - (20 - i) * 5000).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' }),
+    bandwidth: Math.floor(Math.random() * 10) + 15
+  })));
 
   const loadData = async () => {
     try {
@@ -31,11 +35,19 @@ export default function NetworkView() {
         fetchNetworkEvents(),
         fetchNetworkSummary()
       ]);
+      
       if (evRes.status === "fulfilled" && evRes.value) {
         setEvents(evRes.value);
       }
       if (sumRes.status === "fulfilled" && sumRes.value) {
-        setSummary(sumRes.value);
+        const newSummary = sumRes.value;
+        setSummary(newSummary);
+        
+        const now = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' });
+        setChartData(prev => {
+          const newData = [...prev.slice(1), { time: now, bandwidth: newSummary.currentBandwidthMbps || 0 }];
+          return newData;
+        });
       }
     } catch {
       // Safe fallback handled in api service
@@ -67,17 +79,17 @@ export default function NetworkView() {
             Real-time packet inspection and anomaly detection across all endpoints.
           </p>
         </div>
-
         <button 
           onClick={handleRefresh}
-          className="flex items-center justify-center space-x-2 text-[10px] font-mono text-zinc-400 px-3 py-2 sm:py-1.5 rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 uppercase tracking-wider transition-colors w-full sm:w-auto"
+          className="flex items-center justify-center space-x-2 text-[10px] font-mono text-zinc-400 px-3 py-2 sm:py-1.5 rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 uppercase tracking-wider transition-colors w-full sm:w-auto cursor-pointer"
         >
           <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
           <span>Force Refresh</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Overview Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="p-4 rounded-md bg-[#111111] border border-zinc-800 flex items-center space-x-4">
           <div className="w-10 h-10 rounded bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
             <Activity size={18} className="text-blue-500" />
@@ -89,12 +101,22 @@ export default function NetworkView() {
         </div>
         
         <div className="p-4 rounded-md bg-[#111111] border border-zinc-800 flex items-center space-x-4">
+          <div className="w-10 h-10 rounded bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+            <Globe size={18} className="text-emerald-500" />
+          </div>
+          <div>
+            <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">Current Bandwidth</div>
+            <div className="text-xl font-bold text-zinc-100 font-mono">{summary?.currentBandwidthMbps || 0} Mbps</div>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-md bg-[#111111] border border-zinc-800 flex items-center space-x-4">
           <div className="w-10 h-10 rounded bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
             <ArrowUpRight size={18} className="text-orange-500" />
           </div>
           <div>
-            <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">Total Bandwidth</div>
-            <div className="text-xl font-bold text-zinc-100 font-mono">{summary?.totalBandwidthMbps || 0} Mbps</div>
+            <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">Peak Bandwidth</div>
+            <div className="text-xl font-bold text-zinc-100 font-mono">{summary?.peakBandwidthMbps || 0} Mbps</div>
           </div>
         </div>
 
@@ -104,13 +126,92 @@ export default function NetworkView() {
           </div>
           <div>
             <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">Anomalies Detected</div>
-            <div className="text-xl font-bold text-zinc-100 font-mono">{summary?.anomaliesDetected || 0}</div>
+            <div className="text-xl font-bold text-zinc-100 font-mono">{events.filter(e => e.anomalyScore > 60).length || summary?.anomaliesDetected || 0}</div>
           </div>
         </div>
       </div>
 
-      <div className="p-4 sm:p-5 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Bandwidth Chart */}
+        <div className="lg:col-span-2 p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+            <h3 className="text-sm font-bold text-zinc-100">Live Network Bandwidth</h3>
+            <div className="flex items-center space-x-2 text-[10px] font-mono text-emerald-500 uppercase tracking-wider">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Live (Mbps)</span>
+            </div>
+          </div>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorBandwidth" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                <XAxis 
+                  dataKey="time" 
+                  stroke="#52525b" 
+                  fontSize={10} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  minTickGap={20}
+                />
+                <YAxis 
+                  stroke="#52525b" 
+                  fontSize={10} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  tickFormatter={(val) => `${val}`}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Area 
+                  type="monotone" 
+                  dataKey="bandwidth" 
+                  name="Bandwidth" 
+                  stroke="#3b82f6" 
+                  strokeWidth={2} 
+                  fillOpacity={1} 
+                  fill="url(#colorBandwidth)" 
+                  isAnimationActive={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Protocol Distribution */}
+        <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+          <h3 className="text-sm font-bold text-zinc-100 border-b border-zinc-800 pb-3">Protocol Distribution</h3>
+          <div className="space-y-4 pt-2">
+            {(summary?.protocols || []).map((proto: any, idx: number) => (
+              <div key={idx} className="space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-mono text-zinc-300">{proto.protocol}</span>
+                  <span className="font-mono text-zinc-400">{proto.percentage}%</span>
+                </div>
+                <div className="w-full bg-zinc-900 rounded-full h-2 overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      idx === 0 ? 'bg-blue-500' : 
+                      idx === 1 ? 'bg-emerald-500' : 
+                      idx === 2 ? 'bg-purple-500' : 
+                      idx === 3 ? 'bg-orange-500' : 'bg-zinc-500'
+                    }`} 
+                    style={{ width: `${proto.percentage}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Live Traffic Feed */}
+      <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
           <h3 className="text-sm font-bold text-zinc-100">Live Traffic Feed</h3>
           <div className="flex items-center space-x-2 text-[10px] font-mono text-emerald-500 uppercase tracking-wider">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -133,18 +234,18 @@ export default function NetworkView() {
             <tbody className="divide-y divide-zinc-800/50 text-xs font-mono">
               {events.map((evt) => (
                 <tr key={evt.id} className="hover:bg-zinc-900/50 transition-colors">
-                  <td className="py-2.5 px-3">
+                  <td className="py-3 px-3">
                     <span className="text-zinc-200">{evt.eventType}</span>
                   </td>
-                  <td className="py-2.5 px-3 text-zinc-400">{evt.sourceIp}</td>
-                  <td className="py-2.5 px-3 text-zinc-400">{evt.destinationIp}</td>
-                  <td className="py-2.5 px-3">
+                  <td className="py-3 px-3 text-zinc-400">{evt.sourceIp}</td>
+                  <td className="py-3 px-3 text-zinc-400">{evt.destinationIp}</td>
+                  <td className="py-3 px-3">
                     <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-300 border border-zinc-700">
                       {evt.protocol}:{evt.port}
                     </span>
                   </td>
-                  <td className="py-2.5 px-3 text-zinc-300">{evt.bandwidthMbps} Mbps</td>
-                  <td className="py-2.5 px-3">
+                  <td className="py-3 px-3 text-zinc-300">{evt.bandwidthMbps} Mbps</td>
+                  <td className="py-3 px-3">
                     <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
                       evt.severity === 'CRITICAL' ? 'text-red-500 bg-red-500/10' :
                       evt.severity === 'HIGH' ? 'text-orange-500 bg-orange-500/10' :
@@ -154,7 +255,7 @@ export default function NetworkView() {
                       {evt.severity}
                     </span>
                   </td>
-                  <td className="py-2.5 px-3 text-[10px] text-zinc-600">{new Date(evt.timestamp).toLocaleTimeString()}</td>
+                  <td className="py-3 px-3 text-[10px] text-zinc-600">{new Date(evt.timestamp).toLocaleTimeString()}</td>
                 </tr>
               ))}
             </tbody>

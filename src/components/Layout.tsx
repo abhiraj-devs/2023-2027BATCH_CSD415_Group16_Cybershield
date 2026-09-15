@@ -160,7 +160,11 @@ export default function Layout({
             }`}
           >
             <Bell size={18} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500"></span>
+            {criticalAlertsCount !== undefined && criticalAlertsCount > 0 && (
+              <span className="absolute top-1 right-1 flex items-center justify-center w-3.5 h-3.5 rounded-full bg-red-500 text-white text-[8px] font-bold border border-[#080808]">
+                {criticalAlertsCount}
+              </span>
+            )}
           </button>
           <button
             id="sidebar-settings-btn"

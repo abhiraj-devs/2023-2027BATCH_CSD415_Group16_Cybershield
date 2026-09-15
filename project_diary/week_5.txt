@@ -1,0 +1,61 @@
+College of Engineering, Chengannur
+Department of Computer Engineering
+BTech Computer Science and Engineering
+CSD415 Project Phase 1 (2026)
+Periodic Report: 10-09-26 to 23-09-26 (Week 5)
+Title: CyberShield AI – Real-Time AI Threat Detection Platform
+Project Group Number: 16
+
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Who?              | Work Assigned              | Work Done                  | Work Scheduled for next    | Assessment by      |
+|                   |                            |                            | 14 Days                    | Guide              |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 59       | Implement Frontend UI for  | Built React components for | Finalizing CI/CD           |                    |
+| Sreedevi R P      | Phishing, Malware, Network.| Phishing & Malware views.  | integration and UI polish. |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 65       | Develop Backend pipelines, | Implemented Threat Intel,  | Bug fixing and extensive   |                    |
+| Vishnu V Nair     | Alerts, and Audit Logging. | Alerts & History modules.  | testing of threat feeds.   |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 66       | System Integration, RBAC,  | Developed AuthContext, API | Final project deployment   |                    |
+| Abhi Raj          | Testing & API Docs.        | Docs, and Unit Tests.      | & performance benchmarks.  |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+
+PROJECT UPDATE: SYSTEM INTEGRATION & ARCHITECTURE DETAILS
+---------------------------------------------------------
+This section details the fully integrated system updates for the CyberShield AI Security Platform (Week 5) and code placement.
+
+1. Phishing Detection Module
+- Code Placement: /src/components/PhishingView.tsx
+- Working: Users input URLs/emails. Client performs validation before sending to the backend pipeline. Returns real-time risk score (0-100) with color-coded severity indicators.
+
+2. Malware Forensics Engine
+- Code Placement: /src/components/MalwareView.tsx
+- Working: Drag-and-drop UI to simulate extracting 72+ entities (hashes, PE headers). Visualizes structural dependencies and calculates threat detection ratios across multiple engines.
+
+3. Network Telemetry Dashboard
+- Code Placement: /src/components/NetworkView.tsx
+- Working: Provides real-time packet flow visualization, memory performance metrics, and state-based connection monitoring for live incident tracking.
+
+4. Threat Intel Aggregation Pipeline
+- Code Placement: /src/components/ThreatIntelView.tsx
+- Working: Aggregates threat feeds (e.g. MISP, Shodan) and generates actionable data by cross-referencing indicators.
+
+5. Automated Security Alert System
+- Code Placement: /src/components/AlertsView.tsx
+- Working: Features rule-based logic generation, alert deduplication, filtering, and escalation workflows.
+
+6. Complete Audit Logging
+- Code Placement: /src/components/HistoryView.tsx
+- Working: Immutable log tracking analysis history, detections, and user activities for compliance reporting.
+
+7. Admin/User Role-Based Access (RBAC)
+- Code Placement: /src/context/AuthContext.tsx & /src/components/SettingsView.tsx
+- Working: Enforces admin vs user privileges, restricting access to sensitive actions (e.g., quarantine approvals).
+
+8. API Documentation
+- Code Placement: /documents/api_documentation.md
+- Working: Documents the API specifications for connecting detection modules and telemetry.
+
+9. Unit and Integration Tests
+- Code Placement: /tests/phishing.test.ts, /tests/malware.test.ts, package.json
+- Working: Test suites simulating interoperability validation. Scripts bound to "npm run test".

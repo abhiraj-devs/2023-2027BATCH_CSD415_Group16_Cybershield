@@ -8,11 +8,17 @@ export default function AlertsView() {
   const [settings, setSettings] = useState({ discordWebhookUrl: "", slackWebhookUrl: "", minSeverity: "MEDIUM" });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAlerts().then(setAlerts).catch(() => {});
     fetchSettings().then(setSettings).catch(() => {});
   }, []);
+
+  const triggerNotice = (msg: string) => {
+    setActionNotice(msg);
+    setTimeout(() => setActionNotice(null), 4000);
+  };
 
   const handleAck = async (id: string) => {
     try {
@@ -26,10 +32,10 @@ export default function AlertsView() {
   const handleSaveSettings = async () => {
     try {
       await updateSettings(settings);
-      alert("Settings saved successfully.");
+      triggerNotice("Notification settings saved successfully.");
     } catch (e) {
       console.error(e);
-      alert("Failed to save settings.");
+      triggerNotice("Failed to save notification settings.");
     }
   };
 
@@ -114,19 +120,19 @@ export default function AlertsView() {
                       {!alert.acknowledged && (
                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                           <button
-                            onClick={() => { alert("Action initiated: Initiating automated forensic investigation timeline..."); handleAck(alert.id); }}
+                            onClick={() => { triggerNotice("Action initiated: Initiating automated forensic investigation timeline..."); handleAck(alert.id); }}
                             className="flex-1 sm:flex-initial flex items-center justify-center space-x-1 px-3 py-2 sm:py-1.5 rounded bg-blue-950/40 hover:bg-blue-900/60 text-blue-400 text-[10px] font-mono border border-blue-900/60 transition-colors"
                           >
                             <span>INVESTIGATE</span>
                           </button>
                           <button
-                            onClick={() => { alert("Action initiated: Added indicator to global whitelist and closed alert."); handleAck(alert.id); }}
+                            onClick={() => { triggerNotice("Action initiated: Added indicator to global whitelist and closed alert."); handleAck(alert.id); }}
                             className="flex-1 sm:flex-initial flex items-center justify-center space-x-1 px-3 py-2 sm:py-1.5 rounded bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-400 text-[10px] font-mono border border-emerald-900/60 transition-colors"
                           >
                             <span>WHITELIST</span>
                           </button>
                           <button
-                            onClick={() => { alert("Action initiated: Target isolated and quarantined from network."); handleAck(alert.id); }}
+                            onClick={() => { triggerNotice("Action initiated: Target isolated and quarantined from network."); handleAck(alert.id); }}
                             className="flex-1 sm:flex-initial flex items-center justify-center space-x-1 px-3 py-2 sm:py-1.5 rounded bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 text-[10px] font-mono border border-rose-900/60 transition-colors"
                           >
                             <span>QUARANTINE</span>

@@ -140,7 +140,7 @@ export default function DashboardView({
       </div>
 
       {/* Summary Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Card 1 */}
         <div className="p-4 rounded-md bg-[#111111] border border-zinc-800 space-y-2">
           <div className="flex items-center justify-between text-zinc-500">
@@ -164,30 +164,6 @@ export default function DashboardView({
           <div className="flex items-baseline space-x-2">
             <span className="text-2xl font-bold text-red-500 font-mono">{summary?.phishingThreats || 14}</span>
             <span className="text-[10px] font-mono text-zinc-500">BLOCKED</span>
-          </div>
-        </div>
-
-        {/* Card 3 */}
-        <div className="p-4 rounded-md bg-[#111111] border border-zinc-800 space-y-2">
-          <div className="flex items-center justify-between text-zinc-500">
-            <span className="text-xs font-mono uppercase">Network Anomalies</span>
-            <Radio size={16} />
-          </div>
-          <div className="flex items-baseline space-x-2">
-            <span className="text-2xl font-bold text-amber-500 font-mono">{summary?.activeAnomalies || 6}</span>
-            <span className="text-[10px] font-mono text-zinc-500">DETECTED</span>
-          </div>
-        </div>
-
-        {/* Card 4 */}
-        <div className="p-4 rounded-md bg-[#111111] border border-zinc-800 space-y-2">
-          <div className="flex items-center justify-between text-zinc-500">
-            <span className="text-xs font-mono uppercase">Critical Alerts</span>
-            <Bell size={16} />
-          </div>
-          <div className="flex items-baseline space-x-2">
-            <span className="text-2xl font-bold text-zinc-100 font-mono">{summary?.criticalAlerts || 3}</span>
-            <span className="text-[10px] font-mono text-zinc-500">UNRESOLVED</span>
           </div>
         </div>
       </div>

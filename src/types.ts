@@ -74,6 +74,16 @@ export interface NetworkEvent {
 export interface ThreatItem {
   id: string;
   source: string;
+  sourceOrigin?: {
+    name: string;
+    type: 'CISA' | 'MITRE' | 'ALIENVAULT' | 'LOCAL_SOC' | 'CERTSTREAM' | 'VIRUSTOTAL' | 'OTHER';
+    endpoint: string;
+    externalUrl?: string;
+    attribution: string;
+    ingestionMethod: string;
+    ingestedAt: string;
+    rawId?: string;
+  };
   indicatorType: 'CVE' | 'IP' | 'DOMAIN' | 'HASH' | 'URL';
   indicator: string;
   indicators?: string[];
@@ -83,6 +93,52 @@ export interface ThreatItem {
   cveId?: string;
   publishedAt: string;
   updatedAt: string;
+  vtStats?: {
+    malicious: number;
+    suspicious: number;
+    harmless: number;
+    undetected: number;
+    total: number;
+  };
+  vtTags?: string[];
+  vtPermalink?: string;
+  popularCategory?: string;
+  engineDetections?: Array<{ engine: string; category: string; result: string }>;
+  cisaDetails?: {
+    vendorProject?: string;
+    product?: string;
+    requiredAction?: string;
+    knownRansomwareCampaignUse?: string;
+  };
+  mitreDetails?: {
+    techniqueId?: string;
+    tactic?: string;
+    platforms?: string[];
+    adversaryGroups?: string[];
+  };
+  certStreamDetails?: {
+    issuer?: string;
+    certTransparencyLog?: string;
+    sanDomains?: string[];
+    suspicionReason?: string;
+  };
+  localSocDetails?: {
+    sensorNode?: string;
+    detectionRule?: string;
+    destinationIp?: string;
+    port?: number;
+  };
+}
+
+export interface ThreatSourceStatus {
+  id: 'CISA' | 'MITRE' | 'ALIENVAULT' | 'LOCAL_SOC' | 'CERTSTREAM';
+  name: string;
+  status: 'SYNCED' | 'STREAMING' | 'UPDATING' | 'ERROR';
+  itemCount: number;
+  lastSyncTime: string;
+  endpoint: string;
+  description: string;
+  badgeColor: string;
 }
 
 export interface SecurityAlert {
@@ -115,4 +171,12 @@ export interface VulnerabilityAsset {
   type: string;
   status: 'pending' | 'scanning' | 'vulnerable' | 'secure';
   exposure: number;
+}
+
+export interface CrowdsourcedThreat {
+  id: string;
+  url: string;
+  reportedBy: string;
+  reportedAt: string;
+  status: 'PENDING' | 'VERIFIED' | 'DISCARDED';
 }

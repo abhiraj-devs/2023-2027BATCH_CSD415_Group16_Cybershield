@@ -1,18 +1,30 @@
-import React, { useState } from "react";
-import { ShieldAlert, ShieldCheck, Search, AlertTriangle, CheckCircle2, Cpu, ArrowRight, RefreshCw, Terminal, ExternalLink } from "lucide-react";
-import { PhishingScan } from "../types";
-import { analyzePhishingUrl, fetchPhishingHistory } from "../services/api";
+import React, { useState, useEffect } from "react";
+import { ShieldAlert, ShieldCheck, Search, AlertTriangle, CheckCircle2, Cpu, ArrowRight, RefreshCw, Terminal, ExternalLink, ThumbsUp, ThumbsDown } from "lucide-react";
+import { PhishingScan, CrowdsourcedThreat } from "../types";
+import { analyzePhishingUrl, fetchPhishingHistory, fetchCrowdsourcedThreats, verifyCrowdsourcedThreat, discardCrowdsourcedThreat } from "../services/api";
 
 export default function PhishingView() {
   const [urlInput, setUrlInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentResult, setCurrentResult] = useState<PhishingScan | null>(null);
   const [history, setHistory] = useState<PhishingScan[]>([]);
+  const [crowdsourcedThreats, setCrowdsourcedThreats] = useState<CrowdsourcedThreat[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchPhishingHistory().then(setHistory).catch(() => {});
+    fetchCrowdsourcedThreats().then(setCrowdsourcedThreats).catch(() => {});
   }, []);
+
+  const handleVerifyThreat = async (id: string) => {
+    await verifyCrowdsourcedThreat(id);
+    setCrowdsourcedThreats(prev => prev.filter(t => t.id !== id));
+  };
+
+  const handleDiscardThreat = async (id: string) => {
+    await discardCrowdsourcedThreat(id);
+    setCrowdsourcedThreats(prev => prev.filter(t => t.id !== id));
+  };
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,21 +120,6 @@ export default function PhishingView() {
                 </>
               )}
             </button>
-          </div>
-
-          {/* Quick Samples */}
-          <div className="flex flex-wrap items-center gap-2 pt-2">
-            <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider mr-2">Sample Targets:</span>
-            {sampleUrls.map((sUrl, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => setUrlInput(sUrl)}
-                className="px-2 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[10px] text-zinc-400 font-mono transition-colors truncate max-w-full sm:max-w-xs cursor-pointer"
-              >
-                {sUrl}
-              </button>
-            ))}
           </div>
         </form>
 
@@ -255,22 +252,43 @@ export default function PhishingView() {
       )}
 
       {/* Crowdsourced Threat Intelligence Queue */}
-      <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-          <h3 className="text-sm font-bold text-zinc-100">Crowdsourced Threat Verification</h3>
-          <span className="text-[10px] text-zinc-500 font-mono uppercase bg-zinc-900 px-2 py-1 rounded">1 Pending Review</span>
-        </div>
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center p-3 bg-zinc-950 border border-zinc-900 rounded gap-3 sm:gap-0">
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-mono text-zinc-300 truncate max-w-full sm:max-w-sm">https://verify-billing-update-secure.com</span>
-            <span className="text-[10px] text-zinc-500 mt-1">Reported by: User-0912 • 10 mins ago</span>
+      {crowdsourcedThreats.length > 0 && (
+        <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+            <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              Crowdsourced Threat Verification
+            </h3>
+            <span className="text-[10px] text-zinc-500 font-mono uppercase bg-zinc-900 px-2 py-1 rounded">
+              {crowdsourcedThreats.length} Pending Review
+            </span>
           </div>
-          <div className="flex space-x-2 shrink-0">
-            <button className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 rounded text-[10px] font-bold transition-colors cursor-pointer">VERIFY & RETRAIN</button>
-            <button className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 border border-zinc-800 rounded text-[10px] font-bold transition-colors cursor-pointer">DISCARD</button>
+          <div className="space-y-3">
+            {crowdsourcedThreats.map((threat) => (
+              <div key={threat.id} className="flex flex-col sm:flex-row justify-between sm:items-center p-3 bg-zinc-950 border border-zinc-900 rounded gap-3 sm:gap-0">
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-mono text-zinc-300 truncate max-w-full sm:max-w-sm">{threat.url}</span>
+                  <span className="text-[10px] text-zinc-500 mt-1">Reported by: {threat.reportedBy} • {new Date(threat.reportedAt).toLocaleString()}</span>
+                </div>
+                <div className="flex space-x-2 shrink-0">
+                  <button 
+                    onClick={() => handleVerifyThreat(threat.id)}
+                    className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 rounded text-[10px] font-bold transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    <ThumbsUp className="w-3 h-3" /> VERIFY
+                  </button>
+                  <button 
+                    onClick={() => handleDiscardThreat(threat.id)}
+                    className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 border border-zinc-800 rounded text-[10px] font-bold transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    <ThumbsDown className="w-3 h-3" /> DISCARD
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Phishing History Table */}
       <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
