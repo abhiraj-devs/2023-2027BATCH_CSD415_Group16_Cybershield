@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Radio, Activity, ArrowUpRight, ShieldAlert, Cpu, RefreshCw, Terminal, Globe } from "lucide-react";
+import { Radio, Activity, ArrowUpRight, ShieldAlert, Cpu, RefreshCw, Terminal, Globe, Gauge, Download, Upload, Play } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { NetworkEvent } from "../types";
 import { fetchNetworkEvents, fetchNetworkSummary } from "../services/api";
@@ -28,6 +28,12 @@ export default function NetworkView() {
     time: new Date(Date.now() - (20 - i) * 5000).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' }),
     bandwidth: Math.floor(Math.random() * 10) + 15
   })));
+
+  // Speed test state
+  const [testState, setTestState] = useState<'idle' | 'running' | 'completed'>('idle');
+  const [testPhase, setTestPhase] = useState<'ping' | 'download' | 'upload' | null>(null);
+  const [metrics, setMetrics] = useState({ ping: 0, download: 0, upload: 0 });
+  const [progress, setProgress] = useState(0);
 
   const loadData = async () => {
     try {
@@ -64,6 +70,64 @@ export default function NetworkView() {
     setLoading(true);
     await loadData();
     setLoading(false);
+  };
+
+  const runSpeedTest = async () => {
+    if (testState === 'running') return;
+    setTestState('running');
+    setMetrics({ ping: 0, download: 0, upload: 0 });
+    setProgress(0);
+
+    try {
+      // Real Ping
+      setTestPhase('ping');
+      let pingSum = 0;
+      for (let i = 0; i < 3; i++) {
+        const startPing = performance.now();
+        await fetch('/api/network/speedtest/ping', { cache: 'no-store' });
+        const endPing = performance.now();
+        pingSum += (endPing - startPing);
+        setProgress(5 + i * 5);
+      }
+      setMetrics(m => ({ ...m, ping: Math.round(pingSum / 3) }));
+      setProgress(20);
+
+      // Real Download
+      setTestPhase('download');
+      const startDown = performance.now();
+      const downRes = await fetch('/api/network/speedtest/download', { cache: 'no-store' });
+      const downBlob = await downRes.blob();
+      const endDown = performance.now();
+      
+      const downSeconds = (endDown - startDown) / 1000;
+      const downBytes = downBlob.size;
+      const downMbps = Math.round((downBytes * 8) / (1024 * 1024) / Math.max(downSeconds, 0.001)) || 0;
+      setMetrics(m => ({ ...m, download: downMbps }));
+      setProgress(60);
+
+      // Real Upload
+      setTestPhase('upload');
+      // Create a 5MB payload
+      const upBlob = new Blob([new Uint8Array(5 * 1024 * 1024)]);
+      const startUp = performance.now();
+      await fetch('/api/network/speedtest/upload', {
+        method: 'POST',
+        body: upBlob,
+        headers: { 'Content-Type': 'application/octet-stream' }
+      });
+      const endUp = performance.now();
+      
+      const upSeconds = (endUp - startUp) / 1000;
+      const upBytes = upBlob.size;
+      const upMbps = Math.round((upBytes * 8) / (1024 * 1024) / Math.max(upSeconds, 0.001)) || 0;
+      setMetrics(m => ({ ...m, upload: upMbps }));
+    } catch (e) {
+      console.error("Speed test failed", e);
+    }
+
+    setTestPhase(null);
+    setTestState('completed');
+    setProgress(100);
   };
 
   return (
@@ -133,7 +197,7 @@ export default function NetworkView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Bandwidth Chart */}
-        <div className="lg:col-span-2 p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+        <div className="lg:col-span-2 p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4 flex flex-col">
           <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
             <h3 className="text-sm font-bold text-zinc-100">Live Network Bandwidth</h3>
             <div className="flex items-center space-x-2 text-[10px] font-mono text-emerald-500 uppercase tracking-wider">
@@ -141,7 +205,7 @@ export default function NetworkView() {
               <span>Live (Mbps)</span>
             </div>
           </div>
-          <div className="h-64 w-full">
+          <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -182,29 +246,83 @@ export default function NetworkView() {
           </div>
         </div>
 
-        {/* Protocol Distribution */}
-        <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
-          <h3 className="text-sm font-bold text-zinc-100 border-b border-zinc-800 pb-3">Protocol Distribution</h3>
-          <div className="space-y-4 pt-2">
-            {(summary?.protocols || []).map((proto: any, idx: number) => (
-              <div key={idx} className="space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-mono text-zinc-300">{proto.protocol}</span>
-                  <span className="font-mono text-zinc-400">{proto.percentage}%</span>
+        {/* Right Column: Protocols & Speed Test */}
+        <div className="space-y-6 flex flex-col">
+          {/* Protocol Distribution */}
+          <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+            <h3 className="text-sm font-bold text-zinc-100 border-b border-zinc-800 pb-3">Protocol Distribution</h3>
+            <div className="space-y-4 pt-2">
+              {(summary?.protocols || []).map((proto: any, idx: number) => (
+                <div key={idx} className="space-y-2">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-mono text-zinc-300">{proto.protocol}</span>
+                    <span className="font-mono text-zinc-400">{proto.percentage}%</span>
+                  </div>
+                  <div className="w-full bg-zinc-900 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        idx === 0 ? 'bg-blue-500' : 
+                        idx === 1 ? 'bg-emerald-500' : 
+                        idx === 2 ? 'bg-purple-500' : 
+                        idx === 3 ? 'bg-orange-500' : 'bg-zinc-500'
+                      }`} 
+                      style={{ width: `${proto.percentage}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full bg-zinc-900 rounded-full h-2 overflow-hidden">
-                  <div 
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      idx === 0 ? 'bg-blue-500' : 
-                      idx === 1 ? 'bg-emerald-500' : 
-                      idx === 2 ? 'bg-purple-500' : 
-                      idx === 3 ? 'bg-orange-500' : 'bg-zinc-500'
-                    }`} 
-                    style={{ width: `${proto.percentage}%` }}
-                  />
+              ))}
+            </div>
+          </div>
+
+          {/* Network Speed Test */}
+          <div className="p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                <Gauge className="w-4 h-4 text-blue-500" />
+                Network Speed Test
+              </h3>
+              <button
+                onClick={runSpeedTest}
+                disabled={testState === 'running'}
+                className="px-2 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700 rounded text-[10px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50 flex items-center gap-1 cursor-pointer"
+              >
+                {testState === 'running' ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3 text-emerald-500" />}
+                {testState === 'running' ? 'Testing' : 'Start'}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 text-center pt-2">
+              <div className="p-2 rounded bg-zinc-950 border border-zinc-900">
+                <div className="text-[10px] uppercase text-zinc-500 font-mono flex items-center justify-center gap-1 mb-2">
+                  <Activity className="w-3 h-3" /> Ping
+                </div>
+                <div className={`text-sm font-mono font-bold ${testPhase === 'ping' ? 'text-blue-500 animate-pulse' : 'text-zinc-200'}`}>
+                  {testState === 'idle' ? '--' : metrics.ping} <span className="text-[10px] text-zinc-500 font-normal">ms</span>
                 </div>
               </div>
-            ))}
+              <div className="p-2 rounded bg-zinc-950 border border-zinc-900">
+                <div className="text-[10px] uppercase text-zinc-500 font-mono flex items-center justify-center gap-1 mb-2">
+                  <Download className="w-3 h-3 text-emerald-500" /> Down
+                </div>
+                <div className={`text-sm font-mono font-bold ${testPhase === 'download' ? 'text-emerald-500 animate-pulse' : 'text-zinc-200'}`}>
+                  {testState === 'idle' && testPhase !== 'download' ? '--' : metrics.download} <span className="text-[10px] text-zinc-500 font-normal">Mbps</span>
+                </div>
+              </div>
+              <div className="p-2 rounded bg-zinc-950 border border-zinc-900">
+                <div className="text-[10px] uppercase text-zinc-500 font-mono flex items-center justify-center gap-1 mb-2">
+                  <Upload className="w-3 h-3 text-purple-500" /> Up
+                </div>
+                <div className={`text-sm font-mono font-bold ${testPhase === 'upload' ? 'text-purple-500 animate-pulse' : 'text-zinc-200'}`}>
+                  {testState === 'idle' && testPhase !== 'upload' ? '--' : metrics.upload} <span className="text-[10px] text-zinc-500 font-normal">Mbps</span>
+                </div>
+              </div>
+            </div>
+
+            {testState === 'running' && (
+              <div className="w-full bg-zinc-900 rounded-full h-1 mt-2 overflow-hidden">
+                <div className="bg-blue-500 h-full transition-all duration-300" style={{ width: `${progress}%` }} />
+              </div>
+            )}
           </div>
         </div>
       </div>

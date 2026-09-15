@@ -1108,6 +1108,25 @@ app.get("/api/network/summary", (req, res) => {
   });
 });
 
+// Speed Test Routes
+app.get("/api/network/speedtest/ping", (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.status(200).send("pong");
+});
+
+app.get("/api/network/speedtest/download", (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Content-Type", "application/octet-stream");
+  // 15 MB of data
+  const size = 15 * 1024 * 1024;
+  const buffer = Buffer.alloc(size, 'x'); 
+  res.send(buffer);
+});
+
+app.post("/api/network/speedtest/upload", express.raw({ type: '*/*', limit: '50mb' }), (req, res) => {
+  res.json({ success: true, receivedBytes: req.body ? req.body.length : 0 });
+});
+
 // VirusTotal Threat Intelligence Helper
 async function fetchVirusTotalThreatIndicator(query: string, typeHint?: 'file' | 'domain' | 'ip' | 'url') {
   const apiKey = process.env.VIRUSTOTAL_API_KEY;
