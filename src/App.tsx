@@ -10,8 +10,6 @@ import ThreatIntelView from "./components/ThreatIntelView";
 import AlertsView from "./components/AlertsView";
 import HistoryView from "./components/HistoryView";
 import SettingsView from "./components/SettingsView";
-import ProfileSettingsView from "./components/ProfileSettingsView";
-import TrainingView from "./components/TrainingView";
 import { DashboardSummary, SecurityAlert, NetworkEvent, ThreatItem } from "./types";
 import { fetchDashboardSummary, fetchAlerts, fetchNetworkEvents, fetchThreatIntel } from "./services/api";
 import { AuthProvider } from "./context/AuthContext";
@@ -97,8 +95,6 @@ function MainApp() {
       {activeTab === "threatIntel" && <ThreatIntelView searchQuery={searchQuery} />}
       {activeTab === "alerts" && <AlertsView />}
       {activeTab === "history" && <HistoryView />}
-      {activeTab === "training" && <TrainingView />}
-      {activeTab === "profile" && <ProfileSettingsView />}
       {activeTab === "settings" && <SettingsView />}
     </Layout>
   );

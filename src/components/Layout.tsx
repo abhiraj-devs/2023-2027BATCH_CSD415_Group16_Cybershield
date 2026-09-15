@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Menu, X } from 'lucide-react';
+import { Settings, Menu, X, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './AuthModal';
 import CyberShieldLogo from './CyberShieldLogo';
@@ -41,10 +41,8 @@ export default function Layout({
     { id: 'phishing', label: 'Phishing Detection' },
     { id: 'malware', label: 'Malware Forensics' },
     { id: 'network', label: 'Network Telemetry' },
-    { id: 'threat-intel', label: 'Threat Intelligence' },
+    { id: 'threatIntel', label: 'Threat Intelligence' },
     { id: 'alerts', label: 'Security Alerts' },
-    { id: 'training', label: 'Security Training' },
-    { id: 'profile', label: 'Operator Identity' },
   ];
 
   return (
@@ -54,17 +52,17 @@ export default function Layout({
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-xs transition-opacity duration-200"
+          className="fixed inset-0 bg-black/80 z-40 md:hidden backdrop-blur-xs transition-opacity duration-200"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Main Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50
+        fixed md:static inset-y-0 left-0 z-50
         w-72 max-w-[85vw] bg-[#080808] border-r border-zinc-800/80 flex flex-col justify-between
-        transform transition-transform duration-200 ease-in-out shadow-2xl lg:shadow-none
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        transform transition-transform duration-200 ease-in-out shadow-2xl md:shadow-none
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         <div className="p-4 sm:p-5 border-b border-zinc-800/80 shrink-0 flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -76,7 +74,7 @@ export default function Layout({
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-zinc-800 transition-colors cursor-pointer"
+            className="md:hidden p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-zinc-800 transition-colors cursor-pointer"
             aria-label="Close menu"
           >
             <X size={18} />
@@ -152,6 +150,19 @@ export default function Layout({
           )}
 
           <button
+            onClick={() => { setActiveTab('alerts'); setSidebarOpen(false); }}
+            title="Notifications"
+            aria-label="Notifications"
+            className={`p-2 rounded-md transition-colors shrink-0 cursor-pointer relative ${
+              activeTab === 'alerts'
+                ? 'bg-zinc-900 text-zinc-100 border border-zinc-800'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900 border border-transparent'
+            }`}
+          >
+            <Bell size={18} />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500"></span>
+          </button>
+          <button
             id="sidebar-settings-btn"
             onClick={() => { setActiveTab('settings'); setSidebarOpen(false); }}
             title="Settings"
@@ -174,44 +185,20 @@ export default function Layout({
           <div className="flex items-center space-x-2.5 sm:space-x-4">
             <button 
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 -ml-1 rounded-md text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center shrink-0"
+              className="md:hidden p-2 -ml-1 rounded-md text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center shrink-0"
               aria-label="Toggle menu"
             >
               <Menu size={18} />
             </button>
             
             {/* Mobile Header Brand */}
-            <div className="flex items-center space-x-2 lg:hidden">
+            <div className="flex items-center space-x-2 md:hidden">
               <CyberShieldLogo className="w-6 h-6 shrink-0 drop-shadow-[0_0_6px_rgba(0,210,255,0.4)]" />
               <span className="text-xs font-bold font-mono tracking-tight text-zinc-100">CyberShield</span>
-            </div>
-
-            {/* Status indicator */}
-            <div className="flex items-center space-x-1.5 text-xs font-mono text-zinc-500">
-               <span className="uppercase tracking-wider hidden sm:inline">Status:</span>
-               <div className="flex items-center space-x-1.5 px-2 py-0.5 sm:py-1 bg-zinc-900 border border-zinc-800 rounded">
-                 <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                  (systemStatus === 'Alert' || systemStatus === 'Compromised' || systemStatus === 'Elevated Threat Activity') ? 'animate-pulse' : ''
-                 } ${
-                  systemStatus === 'Operational' ? 'bg-emerald-500' : 
-                  systemStatus === 'Elevated Threat Activity' ? 'bg-amber-500' : 'bg-red-500'
-                 }`} />
-                 <span className="text-zinc-300 text-[11px] sm:text-xs truncate max-w-[85px] sm:max-w-none">{systemStatus}</span>
-               </div>
             </div>
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-3">
-            <div className="relative hidden md:block">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search queries..."
-                className="bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-600 font-mono w-48 lg:w-64 transition-colors"
-              />
-            </div>
-
             {/* Auth Top Action */}
             {user ? (
               <button

@@ -240,10 +240,10 @@ export async function fetchPhishingHistory(): Promise<PhishingScan[]> {
   return safeFetchJson<PhishingScan[]>("/api/phishing/history", {}, []);
 }
 
-export async function scanMalwareFile(filename: string, fileContent?: string): Promise<MalwareScan> {
+export async function scanMalwareFile(filename: string, sha256?: string, fileContent?: string): Promise<MalwareScan> {
   return safeFetchJson<MalwareScan>("/api/malware/scan", {
     method: "POST",
-    body: JSON.stringify({ filename, fileContent }),
+    body: JSON.stringify({ filename, sha256, fileContent }),
   });
 }
 

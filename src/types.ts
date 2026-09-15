@@ -43,6 +43,16 @@ export interface MalwareScan {
   threatName?: string;
   threatLabel?: string;
   reportSummary?: string;
+  hfimRgb?: {
+    r: string;
+    g: string;
+    b: string;
+  };
+  hapMemory?: {
+    hiddenPid?: string;
+    c2Socket?: string;
+    decryptionKey?: string;
+  };
   scannedAt: string;
 }
 

@@ -1,0 +1,80 @@
+# CyberShield AI - Malware Forensics Engine
+# List of the 72 Integrated Antivirus & EDR Engines
+# --------------------------------------------------
+# This document lists the 72 security vendors, EDRs, and traditional 
+# antivirus engines that are queried (or simulated) when a file hash 
+# is submitted to the Malware Forensics module. Each entry includes 
+# a brief description of the engine's primary security capability.
+
+1. Acronis: Focuses on backup/recovery combined with AI-based anti-malware and ransomware protection.
+2. Ad-Aware: Specializes in spyware and malware detection using signature and heuristic analysis.
+3. AhnLab-V3: South Korean endpoint security platform providing real-time threat detection and remediation.
+4. Alibaba: Cloud-native security engine providing threat intelligence and malware detection for web and cloud infrastructure.
+5. ALYac: Endpoint security engine utilizing dual-engine architecture (Bitdefender + Sophos) for high detection rates.
+6. Antiy-AVL: Mobile and PC anti-malware engine specializing in deep file inspection and network traffic analysis.
+7. Apex: Trend Micro's endpoint security solution focusing on advanced threat protection and machine learning.
+8. Arcabit: Polish antivirus engine leveraging Bitdefender's core alongside proprietary cloud-based heuristic analysis.
+9. Avast: Widely used consumer and enterprise AV known for its large threat intelligence network and behavioral shields.
+10. Avast-Mobile: Mobile-specific threat detection engine tailored for Android malware and malicious app behaviors.
+11. AVG: Popular AV engine focusing on internet security, link scanning, and zero-day threat detection.
+12. Avira: German security engine known for its lightweight footprint and strong heuristic detection capabilities.
+13. Babable: Machine-learning based engine focusing on static analysis and structural file anomalies.
+14. Baidu: Chinese security engine integrating cloud computing technology for rapid signature matching and threat detection.
+15. BitDefender: Industry-leading Romanian engine known for consistently high detection rates and advanced behavioral AI.
+16. BitDefenderTheta: Next-generation machine learning component of Bitdefender focusing entirely on zero-day, fileless, and advanced persistent threats (APTs).
+17. Bkav: Vietnamese antivirus engine using cloud computing and artificial intelligence for zero-day protection.
+18. CAT-QuickHeal: Indian security provider focusing on network security, endpoint protection, and ransomware behavioral detection.
+19. ClamAV: Open-source antivirus engine heavily used for email scanning, web gateways, and cross-platform malware detection.
+20. CMC: Cloud-based security engine providing real-time malware analysis and threat intelligence integration.
+21. Comodo: Security suite known for its "Default Deny" architecture and strong auto-containment/sandboxing technology.
+22. CrowdStrike (Falcon): Premier cloud-native EDR (Endpoint Detection and Response) using AI and machine learning to stop breaches in real-time.
+23. Cybereason: Defense-oriented EDR platform that uses behavioral analytics to detect malicious operations (MalOps) across environments.
+24. Cylance: AI-driven security engine that uses mathematical models and machine learning to predict and prevent malware execution.
+25. Cynet: Autonomous breach protection platform consolidating endpoint, network, and user behavior analytics.
+26. Cyren: Cloud-based threat intelligence engine specializing in email security, URL filtering, and malware detection.
+27. DrWeb: Russian antivirus engine known for its ability to cure infected files rather than just quarantining them, plus strong unpacker capabilities.
+28. Elastic: Open-source backed SIEM and endpoint security engine leveraging Elasticsearch for deep data analytics and anomaly detection.
+29. Emsisoft: Dual-engine security solution (using Bitdefender and proprietary technology) heavily focused on ransomware and behavioral blocking.
+30. eScan: Endpoint security utilizing heuristic algorithms and proprietary technology to detect unknown threats.
+31. ESET-NOD32: Highly respected Slovakian engine known for its low system footprint, advanced memory scanning, and UEFI inspection.
+32. Fortinet: Enterprise firewall and endpoint engine using AI and FortiGuard Threat Intelligence for comprehensive network security.
+33. GData: German security solution combining two independent scan engines for maximum detection accuracy and exploit protection.
+34. Google: Google's infrastructure security engine, heavily focused on Safe Browsing, Phishing, and Android ecosystem threat detection.
+35. Gridinsoft: Anti-malware engine specializing in the removal of adware, spyware, and potentially unwanted programs (PUPs).
+36. Ikarus: Austrian antivirus engine focusing on email security, web gateways, and malware analysis.
+37. Jiangmin: Chinese antivirus solution focusing on system defense and heuristic virus detection.
+38. K7AntiVirus: Indian security engine known for its fast scanning speeds and comprehensive endpoint protection framework.
+39. K7GW: Gateway-focused version of K7, optimized for network-level threat detection and traffic inspection.
+40. Kaspersky: World-renowned Russian engine known for exceptional detection rates, deep threat intelligence, and advanced APT tracking.
+41. Kingsoft: Cloud-based Chinese security engine emphasizing internet security and system optimization alongside malware defense.
+42. Lionic: Network security engine providing Deep Packet Inspection (DPI) and hardware-accelerated threat detection.
+43. Malwarebytes: Specialized engine famous for detecting zero-day exploits, ransomware, and PUPs that traditional AVs often miss.
+44. MaxSecure: Enterprise security engine utilizing dynamic emulation and heuristic scanning to identify unknown threats.
+45. McAfee: Legacy enterprise security engine (now Trellix) focusing on comprehensive endpoint, network, and cloud protection.
+46. McAfee-GW-Edition: Gateway-specific iteration of McAfee, tuned for scanning web traffic and email payloads at the network edge.
+47. MicroWorld-eScan: Focuses on real-time protection against polymorphic viruses, rootkits, and web-based exploits.
+48. Microsoft Defender: Native Windows security engine providing cloud-backed, ML-driven endpoint protection and deep OS integration.
+49. NANO-Antivirus: Russian AV engine using proprietary technology for high-speed scanning and deep archive inspection.
+50. Palo Alto Networks (Cortex): Advanced EDR/XDR platform leveraging deep machine learning and behavioral analytics to halt complex attacks.
+51. Panda: Cloud-based AV utilizing Collective Intelligence technology to detect malware without heavy local signature databases.
+52. Qihoo-360: Chinese internet security engine combining multiple local and cloud engines for robust threat detection.
+53. Rising: Chinese antivirus software specializing in active defense and cloud security intelligence.
+54. Sangfor: Enterprise network security engine focusing on advanced persistent threats (APT) and web application firewalls.
+55. SentinelOne: Autonomous AI endpoint security platform known for its behavioral AI, rollback capabilities, and zero-day prevention.
+56. Sophos: Enterprise security engine famous for Intercept X, utilizing deep learning neural networks to block unknown malware and ransomware.
+57. SUPERAntiSpyware: Specialized scanner designed specifically to detect and remove spyware, adware, trojans, and dialers.
+58. Symantec: Broadcom's enterprise security engine, providing advanced machine learning, exploit mitigation, and massive global threat intelligence.
+59. TACHYON: South Korean engine developed by INCA Internet, focusing on endpoint security and anti-keylogger technologies.
+60. Tencent: Chinese tech giant's security engine utilizing cloud-based big data analysis for malware and phishing detection.
+61. Trellix (FireEye): Merged McAfee/FireEye entity specializing in advanced threat intelligence, network forensics, and nation-state actor detection.
+62. TrendMicro: Global cybersecurity leader focusing on hybrid cloud security, network defense, and smart protection networks.
+63. TrendMicro-HouseCall: Cloud-based, on-demand web scanner by Trend Micro for identifying active malware infections.
+64. Trustlook: AI-powered security engine focused heavily on mobile threats, IoT security, and zero-day vulnerability detection.
+65. Varist: Malware analysis engine specializing in threat intelligence feeds and file behavioral scoring.
+66. VIPRE: Endpoint security engine combining advanced machine learning, behavior analysis, and threat intelligence.
+67. ViRobot: South Korean antivirus engine by HAURI, focusing on data protection and server-side virus scanning.
+68. Webroot: Highly lightweight, cloud-based engine utilizing predictive threat intelligence and journaling/rollback capabilities.
+69. Yandex: Russian tech giant's security scanner, primarily focused on web safety, phishing detection, and malicious URL filtering.
+70. Zillya: Ukrainian antivirus engine focusing on heuristic analysis, behavioral blocking, and email inspection.
+71. ZoneAlarm: Consumer security engine (partnered with Check Point) known for its robust firewall and OS-level threat prevention.
+72. Zoner: Czech security solution focusing on server protection, email filtering, and robust anti-spam technologies.

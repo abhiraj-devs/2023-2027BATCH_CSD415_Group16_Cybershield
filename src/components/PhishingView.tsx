@@ -18,6 +18,18 @@ export default function PhishingView() {
     e.preventDefault();
     if (!urlInput.trim()) return;
 
+    let isValid = true;
+    try {
+      new URL(urlInput.trim().startsWith('http') ? urlInput.trim() : `https://${urlInput.trim()}`);
+    } catch {
+      isValid = false;
+    }
+    
+    if (!isValid) {
+      setError("Please enter a valid URL (e.g., https://example.com)");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -150,7 +162,7 @@ export default function PhishingView() {
                   stroke="currentColor"
                   strokeWidth="8"
                   strokeDasharray={351.8}
-                  strokeDashoffset={351.8 - (351.8 * currentResult.riskScore) / 100}
+                  strokeDashoffset={351.8 - (351.8 * (currentResult.riskScore || 0)) / 100}
                   strokeLinecap="butt"
                   className={`fill-none transition-all duration-1000 ${
                     currentResult.riskScore >= 70 ? 'text-red-500' :

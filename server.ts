@@ -555,7 +555,7 @@ app.post("/api/phishing/analyze", async (req, res) => {
     if (process.env.GEMINI_API_KEY) {
       try {
         const aiRes = await ai.models.generateContent({
-          model: "gemini-3.7-flash",
+          model: "gemini-3.6-flash",
           contents: `You are an expert cybersecurity AI SOC analyst. Provide a concise 2-sentence expert security analysis for this URL: "${url}". It was classified as ${classification} with a risk score of ${score}/100. Mention specific lexical features (like domain structure or keywords).`,
         });
         if (aiRes.text) {
@@ -637,24 +637,51 @@ app.post("/api/malware/scan", async (req, res) => {
   if (process.env.VIRUSTOTAL_API_KEY) {
     try {
       const response = await axios.get(`https://www.virustotal.com/api/v3/files/${computedHash}`, {
-        headers: { "x-apikey": process.env.VIRUSTOTAL_API_KEY }
+        headers: { "x-apikey": process.env.VIRUSTOTAL_API_KEY },
+        validateStatus: (status) => status === 200 || status === 404
       });
-      const data = response.data.data.attributes;
-      detectionCount = data.last_analysis_stats.malicious;
-      malicious = detectionCount > 0;
-      threatName = malicious ? "Malicious File Detected" : undefined;
+      if (response.status === 404) {
+        // File not found on VirusTotal, fall back to simulation
+        malicious = computedHash.startsWith("a81d") || computedHash.startsWith("dead") || computedHash.startsWith("c0de") || name.toLowerCase().includes("malware") || name.toLowerCase().includes("trojan") || name.toLowerCase().includes("exe");
+        detectionCount = malicious ? Math.floor(Math.random() * 25) + 12 : 0;
+        threatName = malicious ? (computedHash.startsWith("a81d") ? "Trojan.Generic.KD.1482" : "Ransom.Win32.Lockbit.X") : undefined;
+      } else {
+        const data = response.data.data.attributes;
+        detectionCount = data.last_analysis_stats.malicious;
+        malicious = detectionCount > 0;
+        threatName = malicious ? "Malicious File Detected" : undefined;
+      }
     } catch (error: any) {
       console.warn("VirusTotal API notice:", error?.message);
       // Fallback to simulation if API fails
-      malicious = computedHash.startsWith("a81d") || computedHash.startsWith("dead") || computedHash.startsWith("c0de");
+      malicious = computedHash.startsWith("a81d") || computedHash.startsWith("dead") || computedHash.startsWith("c0de") || name.toLowerCase().includes("malware") || name.toLowerCase().includes("trojan") || name.toLowerCase().includes("exe");
       detectionCount = malicious ? Math.floor(Math.random() * 25) + 12 : 0;
-      threatName = malicious ? "Trojan.Generic.KD.1482" : undefined;
+      threatName = malicious ? (computedHash.startsWith("a81d") ? "Trojan.Generic.KD.1482" : "Ransom.Win32.Lockbit.X") : undefined;
     }
   } else {
     // Simulate
     malicious = computedHash.startsWith("a81d") || computedHash.startsWith("dead") || computedHash.startsWith("c0de") || name.toLowerCase().includes("malware") || name.toLowerCase().includes("trojan") || name.toLowerCase().includes("exe");
     detectionCount = malicious ? Math.floor(Math.random() * 25) + 12 : 0;
     threatName = malicious ? (computedHash.startsWith("a81d") ? "Trojan.Generic.KD.1482" : "Ransom.Win32.Lockbit.X") : undefined;
+  }
+
+  const rColor = malicious ? "from-red-600" : "from-emerald-600";
+  const gColor = malicious ? (Math.random() > 0.5 ? "via-orange-500" : "via-red-500") : "via-emerald-500";
+  const bColor = malicious ? "to-purple-700" : "to-teal-500";
+  
+  let hapMemory = undefined;
+  if (malicious) {
+    hapMemory = {
+      hiddenPid: `${Math.floor(Math.random() * 8000) + 1000} (${name.includes("exe") ? name : "svchost.exe"})`,
+      c2Socket: Math.random() > 0.3 ? "ESTABLISHED" : "LISTENING",
+      decryptionKey: Math.random() > 0.5 ? "RECOVERED" : "OBFUSCATED",
+    };
+  } else {
+    hapMemory = {
+      hiddenPid: "NONE",
+      c2Socket: "NONE",
+      decryptionKey: "N/A",
+    };
   }
 
   const scanRecord = {
@@ -667,6 +694,12 @@ app.post("/api/malware/scan", async (req, res) => {
     detectionCount,
     totalEngines,
     threatName,
+    hfimRgb: {
+      r: rColor,
+      g: gColor,
+      b: bColor,
+    },
+    hapMemory,
     scannedAt: new Date().toISOString(),
   };
 

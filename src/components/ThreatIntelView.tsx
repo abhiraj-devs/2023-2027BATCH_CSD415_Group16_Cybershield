@@ -82,11 +82,17 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
     }
   };
 
-  const filteredIntel = intel.filter(item => 
-    item.threatName.toLowerCase().includes((searchQuery || "").toLowerCase()) ||
-    item.source.toLowerCase().includes((searchQuery || "").toLowerCase()) ||
-    item.cveId?.toLowerCase().includes((searchQuery || "").toLowerCase())
-  );
+  const filteredIntel = intel.filter(item => {
+    if (!item) return false;
+    const name = item.threatName || (item as any).threatLabel || (item as any).name || "";
+    const src = item.source || "";
+    const cve = item.cveId || "";
+    const query = (searchQuery || "").toLowerCase();
+    
+    return name.toLowerCase().includes(query) ||
+           src.toLowerCase().includes(query) ||
+           cve.toLowerCase().includes(query);
+  });
 
   return (
     <div className="space-y-6">
@@ -140,7 +146,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                         {item.severity === 'CRITICAL' ? <AlertTriangle size={16} /> : <ShieldAlert size={16} />}
                       </div>
                       <div className="min-w-0">
-                        <h4 className="text-sm font-bold text-zinc-200 truncate">{item.threatName}</h4>
+                        <h4 className="text-sm font-bold text-zinc-200 truncate">{item.threatName || (item as any).threatLabel || (item as any).name || "Unknown Threat"}</h4>
                         <div className="flex flex-wrap items-center gap-1.5 mt-1">
                           <span className="text-[10px] text-zinc-500 font-mono">{new Date(item.publishedAt).toLocaleDateString()}</span>
                           <span className="text-[10px] px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded font-mono text-zinc-400">{item.source}</span>
@@ -167,11 +173,11 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                       <p className="text-sm text-zinc-300 leading-relaxed font-sans mb-4">
                         {item.description}
                       </p>
-                      {item.indicators.length > 0 && (
+                      {(item.indicators || []).length > 0 && (
                         <div>
                           <h5 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Indicators of Compromise (IoCs)</h5>
                           <div className="flex flex-wrap gap-2">
-                            {item.indicators.map((ioc, idx) => (
+                            {(item.indicators || []).map((ioc, idx) => (
                               <span key={idx} className="px-2 py-1 rounded bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-300">
                                 {ioc}
                               </span>
