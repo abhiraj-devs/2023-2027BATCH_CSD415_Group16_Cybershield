@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Menu, X, Bell } from 'lucide-react';
+import { Settings, Menu, X, Bell, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './AuthModal';
 import CyberShieldLogo from './CyberShieldLogo';
@@ -25,6 +25,8 @@ export default function Layout({
   setActiveTab, 
   systemStatus,
   criticalAlertsCount,
+  isDarkMode,
+  toggleTheme,
   searchQuery: externalSearchQuery,
   setSearchQuery: setExternalSearchQuery,
 }: LayoutProps) {
@@ -46,7 +48,7 @@ export default function Layout({
   ];
 
   return (
-    <div className="flex h-screen bg-[#030303] text-zinc-100 font-sans antialiased overflow-hidden selection:bg-zinc-800 selection:text-zinc-200">
+    <div className="flex h-screen bg-zinc-50 dark:bg-[#030303] text-zinc-900 dark:text-zinc-100 font-sans antialiased overflow-hidden selection:bg-zinc-200 dark:bg-zinc-800 selection:text-zinc-800 dark:text-zinc-200">
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
 
       {/* Mobile sidebar backdrop */}
@@ -60,21 +62,21 @@ export default function Layout({
       {/* Main Sidebar */}
       <aside className={`
         fixed md:static inset-y-0 left-0 z-50
-        w-72 max-w-[85vw] bg-[#080808] border-r border-zinc-800/80 flex flex-col justify-between
+        w-72 max-w-[85vw] bg-white dark:bg-[#080808] border-r border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between
         transform transition-transform duration-200 ease-in-out shadow-2xl md:shadow-none
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
-        <div className="p-4 sm:p-5 border-b border-zinc-800/80 shrink-0 flex items-center justify-between">
+        <div className="p-4 sm:p-5 border-b border-zinc-200 dark:border-zinc-800/80 shrink-0 flex items-center justify-between">
           <div className="flex items-center space-x-3">
              <CyberShieldLogo className="w-8 h-8 shrink-0 drop-shadow-[0_0_8px_rgba(0,210,255,0.4)]" />
              <div>
-               <h1 className="text-sm font-bold tracking-tight text-zinc-100">CyberShield</h1>
+               <h1 className="text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-100">CyberShield</h1>
                <p className="text-[10px] text-zinc-500 font-mono">Real-Time Threat Intelligence</p>
              </div>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="md:hidden p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-zinc-800 transition-colors cursor-pointer"
+            className="md:hidden p-1.5 rounded-md text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 transition-colors cursor-pointer"
             aria-label="Close menu"
           >
             <X size={18} />
@@ -90,8 +92,8 @@ export default function Layout({
                 onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
                 className={`w-full flex items-center px-3 py-2.5 rounded-md transition-colors text-sm font-medium cursor-pointer ${
                   isActive 
-                    ? 'bg-zinc-900 text-zinc-100 border border-zinc-800' 
-                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50 border border-transparent'
+                    ? 'bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-800' 
+                    : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:bg-zinc-900/50 border border-transparent'
                 }`}
               >
                 <span className="flex-1 text-left">{item.label}</span>
@@ -106,26 +108,26 @@ export default function Layout({
         </nav>
         
         {/* User container */}
-        <div className="p-4 border-t border-zinc-800/80 shrink-0 flex items-center justify-between gap-2">
+        <div className="p-4 border-t border-zinc-200 dark:border-zinc-800/80 shrink-0 flex items-center justify-between gap-2">
           {user ? (
             <button 
               onClick={() => { setActiveTab('profile'); setSidebarOpen(false); }} 
-              className="flex items-center space-x-2.5 flex-1 min-w-0 p-1.5 rounded-md hover:bg-zinc-900 transition-colors text-left cursor-pointer"
+              className="flex items-center space-x-2.5 flex-1 min-w-0 p-1.5 rounded-md hover:bg-zinc-100 dark:bg-zinc-900 transition-colors text-left cursor-pointer"
             >
               {user.photoURL ? (
                 <img 
                   src={user.photoURL} 
                   alt={user.displayName || "User"} 
-                  className="w-8 h-8 rounded-full border border-zinc-700 shrink-0 object-cover" 
+                  className="w-8 h-8 rounded-full border border-zinc-300 dark:border-zinc-700 shrink-0 object-cover" 
                   referrerPolicy="no-referrer" 
                 />
               ) : (
-                <div className="w-8 h-8 rounded bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-400 shrink-0 font-mono">
+                <div className="w-8 h-8 rounded bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-600 dark:text-zinc-400 shrink-0 font-mono">
                   {user.email ? user.email.charAt(0).toUpperCase() : "U"}
                 </div>
               )}
               <div className="text-left flex-1 min-w-0">
-                <p className="text-xs font-bold text-zinc-200 truncate">
+                <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate">
                   {user.displayName || user.email?.split('@')[0] || "Operator"}
                 </p>
                 <div className="flex items-center space-x-1">
@@ -143,7 +145,7 @@ export default function Layout({
           ) : (
             <button
               onClick={() => setAuthModalOpen(true)}
-              className="flex items-center justify-center flex-1 min-w-0 px-2.5 py-2 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs font-medium transition-colors cursor-pointer"
+              className="flex items-center justify-center flex-1 min-w-0 px-2.5 py-2 rounded-md bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-white border border-zinc-200 dark:border-zinc-800 text-xs font-medium transition-colors cursor-pointer"
             >
               <span className="truncate">Sign In</span>
             </button>
@@ -155,8 +157,8 @@ export default function Layout({
             aria-label="Notifications"
             className={`p-2 rounded-md transition-colors shrink-0 cursor-pointer relative ${
               activeTab === 'alerts'
-                ? 'bg-zinc-900 text-zinc-100 border border-zinc-800'
-                : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900 border border-transparent'
+                ? 'bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-800'
+                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:bg-zinc-900 border border-transparent'
             }`}
           >
             <Bell size={18} />
@@ -173,8 +175,8 @@ export default function Layout({
             aria-label="Settings"
             className={`p-2 rounded-md transition-colors shrink-0 cursor-pointer ${
               activeTab === 'settings'
-                ? 'bg-zinc-900 text-zinc-100 border border-zinc-800'
-                : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900 border border-transparent'
+                ? 'bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-800'
+                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:bg-zinc-900 border border-transparent'
             }`}
           >
             <Settings size={18} />
@@ -183,13 +185,13 @@ export default function Layout({
       </aside>
 
       {/* Main Container */}
-      <main className="flex-1 flex flex-col overflow-y-auto bg-[#030303]">
+      <main className="flex-1 flex flex-col overflow-y-auto bg-zinc-50 dark:bg-[#030303]">
         {/* Top Header */}
-        <header className="h-14 sm:h-16 border-b border-zinc-800/80 flex items-center justify-between px-3 sm:px-6 shrink-0 bg-[#050505]">
+        <header className="h-14 sm:h-16 border-b border-zinc-200 dark:border-zinc-800/80 flex items-center justify-between px-3 sm:px-6 shrink-0 bg-zinc-100 dark:bg-[#050505]">
           <div className="flex items-center space-x-2.5 sm:space-x-4">
             <button 
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 -ml-1 rounded-md text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 transition-colors cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center shrink-0"
+              className="md:hidden p-2 -ml-1 rounded-md text-zinc-700 dark:text-zinc-300 hover:text-white bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:bg-zinc-800 transition-colors cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center shrink-0"
               aria-label="Toggle menu"
             >
               <Menu size={18} />
@@ -198,16 +200,26 @@ export default function Layout({
             {/* Mobile Header Brand */}
             <div className="flex items-center space-x-2 md:hidden">
               <CyberShieldLogo className="w-6 h-6 shrink-0 drop-shadow-[0_0_6px_rgba(0,210,255,0.4)]" />
-              <span className="text-xs font-bold font-mono tracking-tight text-zinc-100">CyberShield</span>
+              <span className="text-xs font-bold font-mono tracking-tight text-zinc-900 dark:text-zinc-100">CyberShield</span>
             </div>
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-3">
+            {toggleTheme && (
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-md bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0"
+                aria-label="Toggle theme"
+              >
+                {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+            )}
+            
             {/* Auth Top Action */}
             {user ? (
               <button
                 onClick={() => setAuthModalOpen(true)}
-                className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-md bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-colors cursor-pointer min-h-[36px]"
+                className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-md bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-700 dark:text-zinc-300 hover:text-white transition-colors cursor-pointer min-h-[36px]"
                 title={user.email || ""}
               >
                 <span className={`w-2 h-2 rounded-full ${emailVerified ? 'bg-emerald-400' : 'bg-amber-400'}`} />

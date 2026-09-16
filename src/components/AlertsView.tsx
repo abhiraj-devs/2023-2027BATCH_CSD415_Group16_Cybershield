@@ -56,13 +56,13 @@ export default function AlertsView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-6 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-zinc-100 flex items-center space-x-2">
-            <Bell size={20} className="text-zinc-400" />
+          <h1 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2">
+            <Bell size={20} className="text-zinc-600 dark:text-zinc-400" />
             <span>SOC Alerting & Integrations</span>
           </h1>
-          <p className="text-zinc-400 text-xs sm:text-sm mt-1">
+          <p className="text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm mt-1">
             Manage live security alerts and configure external webhooks.
           </p>
         </div>
@@ -71,9 +71,9 @@ export default function AlertsView() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Alerts List */}
         <div className="xl:col-span-2 space-y-4">
-          <div className="p-5 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-              <h3 className="text-sm font-bold text-zinc-100">Live Incident Queue</h3>
+          <div className="p-5 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-2">
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Live Incident Queue</h3>
               <div className="flex items-center space-x-2 text-[10px] font-mono text-zinc-500 uppercase">
                 <span>{alerts.filter(a => !a.acknowledged).length} Unacknowledged</span>
               </div>
@@ -85,9 +85,9 @@ export default function AlertsView() {
               ) : (
                 alerts.map(alert => (
                   <div key={alert.id} className={`p-4 rounded-md border ${
-                    alert.acknowledged ? 'bg-zinc-950 border-zinc-900 opacity-70' : 
-                    alert.severity === 'CRITICAL' ? 'bg-[#111111] border-red-900/50' :
-                    alert.severity === 'HIGH' ? 'bg-[#111111] border-orange-900/50' : 'bg-[#111111] border-zinc-800'
+                    alert.acknowledged ? 'bg-zinc-50 dark:bg-zinc-950 border-zinc-300 dark:border-zinc-900 opacity-70' : 
+                    alert.severity === 'CRITICAL' ? 'bg-white dark:bg-[#111111] border-red-900/50' :
+                    alert.severity === 'HIGH' ? 'bg-white dark:bg-[#111111] border-orange-900/50' : 'bg-white dark:bg-[#111111] border-zinc-200 dark:border-zinc-800'
                   }`}>
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
                       <div className="flex space-x-3 w-full sm:w-auto">
@@ -99,10 +99,10 @@ export default function AlertsView() {
                           {alert.severity === 'CRITICAL' ? <ShieldAlert size={18} /> : <AlertTriangle size={18} />}
                         </div>
                         <div>
-                          <h4 className={`text-sm font-bold ${alert.acknowledged ? 'text-zinc-500 line-through' : 'text-zinc-200'}`}>
+                          <h4 className={`text-sm font-bold ${alert.acknowledged ? 'text-zinc-500 line-through' : 'text-zinc-800 dark:text-zinc-200'}`}>
                             {alert.title}
                           </h4>
-                          <p className={`text-xs mt-1 font-mono ${alert.acknowledged ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                          <p className={`text-xs mt-1 font-mono ${alert.acknowledged ? 'text-zinc-600' : 'text-zinc-600 dark:text-zinc-400'}`}>
                             {alert.message}
                           </p>
                           <div className="flex flex-wrap items-center gap-2 mt-2 text-[10px] font-mono text-zinc-500">
@@ -139,7 +139,7 @@ export default function AlertsView() {
                           </button>
                           <button
                             onClick={() => handleAck(alert.id)}
-                            className="flex-1 sm:flex-initial flex items-center justify-center space-x-1 px-3 py-2 sm:py-1.5 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-[10px] font-mono border border-zinc-800 transition-colors"
+                            className="flex-1 sm:flex-initial flex items-center justify-center space-x-1 px-3 py-2 sm:py-1.5 rounded bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] font-mono border border-zinc-200 dark:border-zinc-800 transition-colors"
                           >
                             <CheckCircle2 size={12} />
                             <span>ACKNOWLEDGE</span>
@@ -156,10 +156,10 @@ export default function AlertsView() {
 
         {/* Settings Panel */}
         <div className="xl:col-span-1 space-y-6">
-          <div className="p-5 rounded-md bg-[#111111] border border-zinc-800 space-y-6">
-            <div className="flex items-center space-x-2 border-b border-zinc-800 pb-2">
-              <Settings size={16} className="text-zinc-400" />
-              <h3 className="text-sm font-bold text-zinc-100">Integration Settings</h3>
+          <div className="p-5 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 space-y-6">
+            <div className="flex items-center space-x-2 border-b border-zinc-200 dark:border-zinc-800 pb-2">
+              <Settings size={16} className="text-zinc-600 dark:text-zinc-400" />
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Integration Settings</h3>
             </div>
 
             <div className="space-y-4">
@@ -171,12 +171,12 @@ export default function AlertsView() {
                     value={settings.discordWebhookUrl}
                     onChange={(e) => setSettings({...settings, discordWebhookUrl: e.target.value})}
                     placeholder="https://discord.com/api/webhooks/..."
-                    className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors font-mono"
+                    className="flex-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-3 py-2 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors font-mono"
                   />
                   <button 
                     onClick={() => handleTestWebhook("DISCORD")}
                     disabled={testing || !settings.discordWebhookUrl}
-                    className="px-3 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 disabled:opacity-50 transition-colors"
+                    className="px-3 rounded bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-50 transition-colors"
                     title="Test Discord Webhook"
                   >
                     <Send size={14} />
@@ -192,12 +192,12 @@ export default function AlertsView() {
                     value={settings.slackWebhookUrl}
                     onChange={(e) => setSettings({...settings, slackWebhookUrl: e.target.value})}
                     placeholder="https://hooks.slack.com/services/..."
-                    className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors font-mono"
+                    className="flex-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-3 py-2 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors font-mono"
                   />
                   <button 
                     onClick={() => handleTestWebhook("SLACK")}
                     disabled={testing || !settings.slackWebhookUrl}
-                    className="px-3 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 disabled:opacity-50 transition-colors"
+                    className="px-3 rounded bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-50 transition-colors"
                     title="Test Slack Webhook"
                   >
                     <Send size={14} />
@@ -210,7 +210,7 @@ export default function AlertsView() {
                 <select 
                   value={settings.minSeverity}
                   onChange={(e) => setSettings({...settings, minSeverity: e.target.value})}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500 transition-colors font-mono"
+                  className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-3 py-2 text-sm text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-zinc-500 transition-colors font-mono"
                 >
                   <option value="INFO">INFO & Above</option>
                   <option value="MEDIUM">MEDIUM & Above</option>

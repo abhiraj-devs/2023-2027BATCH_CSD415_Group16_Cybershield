@@ -39,10 +39,10 @@ const MapView = () => {
   ];
 
   return (
-    <div id="threat-intel-map" className="p-5 rounded-md bg-[#111111] border border-zinc-800">
-      <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center justify-between border-b border-zinc-800 pb-2">
+    <div id="threat-intel-map" className="p-5 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800">
+      <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-2">
         <div className="flex items-center space-x-2">
-          <Globe size={16} className="text-zinc-400" />
+          <Globe size={16} className="text-zinc-600 dark:text-zinc-400" />
           <span>Global Threat Telemetry</span>
         </div>
         <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
@@ -50,7 +50,7 @@ const MapView = () => {
           LIVE RADAR
         </span>
       </h3>
-      <div className="relative w-full aspect-video bg-zinc-950 rounded border border-zinc-900 flex items-center justify-center overflow-hidden">
+      <div className="relative w-full aspect-video bg-zinc-50 dark:bg-zinc-950 rounded border border-zinc-300 dark:border-zinc-900 flex items-center justify-center overflow-hidden">
         {/* Abstract map shapes */}
         <div className="absolute inset-0 opacity-20">
           <svg viewBox="0 0 800 400" className="w-full h-full text-zinc-500 fill-current">
@@ -79,7 +79,7 @@ const MapView = () => {
                 p.severity === 'HIGH' ? 'bg-orange-500' : 'bg-yellow-500'
               }`} />
             </div>
-            <div className="hidden group-hover:block absolute bottom-4 left-1/2 -translate-x-1/2 px-2 py-1 bg-zinc-900 border border-zinc-700 text-[10px] text-zinc-200 rounded whitespace-nowrap z-20 shadow-lg font-mono">
+            <div className="hidden group-hover:block absolute bottom-4 left-1/2 -translate-x-1/2 px-2 py-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-[10px] text-zinc-800 dark:text-zinc-200 rounded whitespace-nowrap z-20 shadow-lg font-mono">
               {p.label}
             </div>
           </div>
@@ -233,15 +233,15 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div id="threat-intel-header" className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-6 rounded-md bg-[#111111] border border-zinc-800">
+      <div id="threat-intel-header" className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-6 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800">
         <div>
           <div className="flex items-center space-x-2">
-            <Globe size={20} className="text-zinc-400" />
-            <h1 className="text-lg sm:text-xl font-bold text-zinc-100">
+            <Globe size={20} className="text-zinc-600 dark:text-zinc-400" />
+            <h1 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100">
               Threat Intelligence Feeds
             </h1>
           </div>
-          <p className="text-zinc-400 text-xs sm:text-sm mt-1">
+          <p className="text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm mt-1">
             Real-time threat feeds, malware signatures, and IoCs fetched directly from the VirusTotal API and global intelligence databases.
           </p>
         </div>
@@ -262,7 +262,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-4">
           {/* Feed Filter Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3">
             <div className="flex flex-wrap items-center gap-1.5">
               {[
                 { id: 'ALL', label: 'All Indicators' },
@@ -278,7 +278,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                   className={`px-2.5 py-1 rounded text-xs font-mono transition-colors cursor-pointer ${
                     activeFilter === tab.id
                       ? 'bg-zinc-100 text-zinc-950 font-bold'
-                      : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800'
+                      : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800'
                   }`}
                 >
                   {tab.label}
@@ -307,8 +307,8 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                   <div
                     key={item.id}
                     id={`threat-card-${item.id}`}
-                    className={`rounded-md bg-[#111111] border transition-all ${
-                      expandedId === item.id ? 'border-zinc-700 shadow-md' : 'border-zinc-800/80 hover:border-zinc-700'
+                    className={`rounded-md bg-white dark:bg-[#111111] border transition-all ${
+                      expandedId === item.id ? 'border-zinc-300 dark:border-zinc-700 shadow-md' : 'border-zinc-200 dark:border-zinc-800/80 hover:border-zinc-300 dark:border-zinc-700'
                     }`}
                   >
                     <div 
@@ -325,7 +325,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center space-x-2">
-                            <h4 className="text-sm font-bold text-zinc-200 truncate">
+                            <h4 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 truncate">
                               {item.threatName || (item as any).threatLabel || (item as any).name || "Unknown Threat"}
                             </h4>
                             {isVirusTotal && (
@@ -339,7 +339,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                             <span className="text-[10px] text-zinc-500 font-mono">
                               {new Date(item.publishedAt).toLocaleDateString()}
                             </span>
-                            <span className="text-[10px] px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded font-mono text-zinc-400">
+                            <span className="text-[10px] px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded font-mono text-zinc-600 dark:text-zinc-400">
                               {item.sourceOrigin ? `${item.sourceOrigin.attribution} via ${item.sourceOrigin.name}` : item.source}
                             </span>
                             {item.sourceOrigin?.endpoint && (
@@ -347,11 +347,11 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                                 from {item.sourceOrigin.endpoint}
                               </span>
                             )}
-                            <span className="text-[10px] px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded font-mono text-amber-400">
+                            <span className="text-[10px] px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded font-mono text-amber-400">
                               {item.indicatorType}
                             </span>
                             {item.cveId && (
-                              <span className="text-[10px] px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded font-mono text-blue-400">
+                              <span className="text-[10px] px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded font-mono text-blue-400">
                                 {item.cveId}
                               </span>
                             )}
@@ -367,7 +367,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                       <div className="flex items-center justify-between sm:justify-end space-x-4 shrink-0 pl-11 sm:pl-0">
                         {item.vtStats && (
                           <div className="text-right hidden md:block">
-                            <div className="text-[10px] font-mono text-zinc-400">
+                            <div className="text-[10px] font-mono text-zinc-600 dark:text-zinc-400">
                               Detection Ratio
                             </div>
                             <div className={`text-xs font-mono font-bold ${
@@ -390,47 +390,47 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                     </div>
 
                     {expandedId === item.id && (
-                      <div className="p-4 sm:p-5 border-t border-zinc-800 bg-zinc-950/70 space-y-4">
-                        <p className="text-sm text-zinc-300 leading-relaxed font-sans">
+                      <div className="p-4 sm:p-5 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/70 space-y-4">
+                        <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed font-sans">
                           {item.description}
                         </p>
 
                         {/* VirusTotal Live Detection Meter */}
                         {item.vtStats && (
-                          <div className="p-3 rounded bg-zinc-900/80 border border-zinc-800 space-y-2">
+                          <div className="p-3 rounded bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 space-y-2">
                             <div className="flex items-center justify-between text-xs">
-                              <span className="font-bold text-zinc-200 flex items-center gap-1.5">
+                              <span className="font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
                                 <ShieldAlert size={14} className={maliciousVendors > 0 ? "text-red-400" : "text-emerald-400"} />
                                 VirusTotal Multi-Engine Antivirus Verdict
                               </span>
-                              <span className="font-mono text-[11px] font-bold text-zinc-300">
+                              <span className="font-mono text-[11px] font-bold text-zinc-700 dark:text-zinc-300">
                                 {maliciousVendors} of {totalVendors} flagged ({detectionPct}%)
                               </span>
                             </div>
 
                             {/* Progress bar */}
-                            <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden flex">
+                            <div className="w-full h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden flex">
                               <div style={{ width: `${detectionPct}%` }} className="bg-red-500 h-full transition-all"></div>
                               <div style={{ width: `${(item.vtStats.suspicious / totalVendors) * 100}%` }} className="bg-orange-500 h-full"></div>
                               <div style={{ width: `${(item.vtStats.harmless / totalVendors) * 100}%` }} className="bg-emerald-500 h-full"></div>
                             </div>
 
                             <div className="grid grid-cols-4 gap-2 pt-1">
-                              <div className="p-2 rounded bg-zinc-950 text-center border border-zinc-800/80">
+                              <div className="p-2 rounded bg-zinc-50 dark:bg-zinc-950 text-center border border-zinc-200 dark:border-zinc-800/80">
                                 <div className="text-[10px] text-red-400 font-mono uppercase">Malicious</div>
-                                <div className="text-sm font-bold font-mono text-zinc-200">{item.vtStats.malicious}</div>
+                                <div className="text-sm font-bold font-mono text-zinc-800 dark:text-zinc-200">{item.vtStats.malicious}</div>
                               </div>
-                              <div className="p-2 rounded bg-zinc-950 text-center border border-zinc-800/80">
+                              <div className="p-2 rounded bg-zinc-50 dark:bg-zinc-950 text-center border border-zinc-200 dark:border-zinc-800/80">
                                 <div className="text-[10px] text-orange-400 font-mono uppercase">Suspicious</div>
-                                <div className="text-sm font-bold font-mono text-zinc-200">{item.vtStats.suspicious}</div>
+                                <div className="text-sm font-bold font-mono text-zinc-800 dark:text-zinc-200">{item.vtStats.suspicious}</div>
                               </div>
-                              <div className="p-2 rounded bg-zinc-950 text-center border border-zinc-800/80">
+                              <div className="p-2 rounded bg-zinc-50 dark:bg-zinc-950 text-center border border-zinc-200 dark:border-zinc-800/80">
                                 <div className="text-[10px] text-emerald-400 font-mono uppercase">Harmless</div>
-                                <div className="text-sm font-bold font-mono text-zinc-200">{item.vtStats.harmless}</div>
+                                <div className="text-sm font-bold font-mono text-zinc-800 dark:text-zinc-200">{item.vtStats.harmless}</div>
                               </div>
-                              <div className="p-2 rounded bg-zinc-950 text-center border border-zinc-800/80">
+                              <div className="p-2 rounded bg-zinc-50 dark:bg-zinc-950 text-center border border-zinc-200 dark:border-zinc-800/80">
                                 <div className="text-[10px] text-zinc-500 font-mono uppercase">Undetected</div>
-                                <div className="text-sm font-bold font-mono text-zinc-200">{item.vtStats.undetected}</div>
+                                <div className="text-sm font-bold font-mono text-zinc-800 dark:text-zinc-200">{item.vtStats.undetected}</div>
                               </div>
                             </div>
                           </div>
@@ -439,14 +439,14 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                         {/* Top Antivirus Engine Verdicts */}
                         {item.engineDetections && item.engineDetections.length > 0 && (
                           <div>
-                            <h5 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <h5 className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                               <Cpu size={12} className="text-zinc-500" />
                               Antivirus Engine Signatures (Sampled from VirusTotal)
                             </h5>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                               {item.engineDetections.map((eng, idx) => (
-                                <div key={idx} className="p-2 rounded bg-zinc-900 border border-zinc-800 flex items-center justify-between text-xs">
-                                  <span className="font-bold text-zinc-300 font-mono text-[11px]">{eng.engine}</span>
+                                <div key={idx} className="p-2 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs">
+                                  <span className="font-bold text-zinc-700 dark:text-zinc-300 font-mono text-[11px]">{eng.engine}</span>
                                   <span className="font-mono text-[10px] text-red-400 truncate max-w-[170px]" title={eng.result}>
                                     {eng.result}
                                   </span>
@@ -458,16 +458,16 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
 
                         {/* Indicators of Compromise */}
                         <div>
-                          <h5 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2">
+                          <h5 className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider mb-2">
                             Indicators of Compromise (IoCs)
                           </h5>
                           <div className="space-y-1.5">
                             {([item.indicator, ...(item.indicators || [])]).filter((v, i, a) => a.indexOf(v) === i && !!v).map((ioc, idx) => (
-                              <div key={idx} className="flex items-center justify-between p-2 rounded bg-zinc-900 border border-zinc-800 font-mono text-xs text-zinc-300">
+                              <div key={idx} className="flex items-center justify-between p-2 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 font-mono text-xs text-zinc-700 dark:text-zinc-300">
                                 <span className="truncate mr-2 text-[11px]">{ioc}</span>
                                 <button
                                   onClick={() => copyToClipboard(ioc, `${item.id}-${idx}`)}
-                                  className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors shrink-0 cursor-pointer"
+                                  className="p-1 rounded hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:text-zinc-200 transition-colors shrink-0 cursor-pointer"
                                   title="Copy IoC"
                                 >
                                   {copiedId === `${item.id}-${idx}` ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
@@ -480,13 +480,13 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                         {/* Tags */}
                         {item.vtTags && item.vtTags.length > 0 && (
                           <div>
-                            <h5 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                            <h5 className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                               <Tag size={12} className="text-zinc-500" />
                               Threat Tags
                             </h5>
                             <div className="flex flex-wrap gap-1.5">
                               {item.vtTags.map((tag, tIdx) => (
-                                <span key={tIdx} className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-300">
+                                <span key={tIdx} className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[10px] font-mono text-zinc-700 dark:text-zinc-300">
                                   #{tag}
                                 </span>
                               ))}
@@ -495,7 +495,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                         )}
 
                         {/* Action Buttons */}
-                        <div className="flex items-center justify-between pt-2 border-t border-zinc-800 text-xs">
+                        <div className="flex items-center justify-between pt-2 border-t border-zinc-200 dark:border-zinc-800 text-xs">
                           <span className="text-zinc-500 text-[11px] font-mono">
                             Last Modified: {item.updatedAt}
                           </span>
@@ -504,7 +504,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                               href={item.vtPermalink}
                               target="_blank"
                               rel="noreferrer noopener"
-                              className="px-3 py-1.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 hover:text-white font-mono text-[11px] flex items-center space-x-1.5 transition-colors cursor-pointer"
+                              className="px-3 py-1.5 rounded bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:text-white font-mono text-[11px] flex items-center space-x-1.5 transition-colors cursor-pointer"
                             >
                               <span>View on VirusTotal</span>
                               <ExternalLink size={12} />
@@ -518,7 +518,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
               })}
 
               {filteredIntel.length === 0 && (
-                <div className="text-center py-12 text-zinc-500 text-sm font-mono bg-[#111111] rounded-md border border-zinc-800">
+                <div className="text-center py-12 text-zinc-500 text-sm font-mono bg-white dark:bg-[#111111] rounded-md border border-zinc-200 dark:border-zinc-800">
                   No intelligence feeds found matching your criteria.
                 </div>
               )}
@@ -529,8 +529,8 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
         {/* Right Column: Global Map & Intelligence Feeds Status */}
         <div className="xl:col-span-1 space-y-6">
           {/* Active Sources List */}
-          <div id="active-sources-card" className="p-5 rounded-md bg-[#111111] border border-zinc-800 space-y-4">
-            <h3 className="text-sm font-bold text-zinc-100 border-b border-zinc-800 pb-2 flex items-center justify-between">
+          <div id="active-sources-card" className="p-5 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 space-y-4">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 border-b border-zinc-200 dark:border-zinc-800 pb-2 flex items-center justify-between">
               <span>Active Intelligence Sources</span>
               <span className="text-[10px] text-zinc-500 font-mono">5 CONNECTED</span>
             </h3>
@@ -547,12 +547,12 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
                   className={`flex items-center justify-between p-2.5 rounded border transition-colors ${
                     src.highlight
                       ? 'bg-blue-500/5 border-blue-500/30'
-                      : 'bg-zinc-950 border-zinc-900'
+                      : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-300 dark:border-zinc-900'
                   }`}
                 >
                   <div className="flex items-center space-x-2 min-w-0">
                     <CheckCircle2 size={14} className={src.highlight ? "text-blue-400" : "text-emerald-500"} />
-                    <span className={`text-xs font-mono truncate ${src.highlight ? "text-blue-300 font-bold" : "text-zinc-300"}`}>
+                    <span className={`text-xs font-mono truncate ${src.highlight ? "text-blue-300 font-bold" : "text-zinc-700 dark:text-zinc-300"}`}>
                       {src.name}
                     </span>
                   </div>

@@ -6,8 +6,7 @@
 }
 
 body {
-  background-color: #050505;
-  color: #e4e4e7;
+  @apply bg-zinc-100 text-zinc-900 dark:bg-[#050505] dark:text-[#e4e4e7];
   font-family: var(--font-sans);
 }
 

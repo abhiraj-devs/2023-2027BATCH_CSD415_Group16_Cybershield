@@ -53,6 +53,16 @@ export interface MalwareScan {
     c2Socket?: string;
     decryptionKey?: string;
   };
+  staticAnalysis?: {
+    entropy: string;
+    fileType: string;
+    extractedStrings: string[];
+  };
+  dynamicAnalysis?: {
+    networkConnections: string[];
+    droppedFiles: string[];
+    apiCalls: string[];
+  };
   scannedAt: string;
 }
 

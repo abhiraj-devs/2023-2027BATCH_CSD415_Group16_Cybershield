@@ -179,21 +179,21 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto font-sans">
-      <div className="w-full max-w-md bg-[#0a0a0a] border border-zinc-800 rounded-xl shadow-2xl p-4 sm:p-6 relative overflow-hidden my-auto max-h-[94vh] overflow-y-auto">
+      <div className="w-full max-w-md bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-4 sm:p-6 relative overflow-hidden my-auto max-h-[94vh] overflow-y-auto">
         {/* Accent top gradient bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-indigo-500" />
 
-        <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80 mb-5">
+        <div className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800/80 mb-5">
           <div className="flex items-center space-x-3">
             <CyberShieldLogo className="w-8 h-8 shrink-0 drop-shadow-[0_0_8px_rgba(0,210,255,0.4)]" />
             <div>
-              <h2 className="text-base font-bold text-zinc-100 tracking-tight">CyberShield</h2>
-              <p className="text-xs text-zinc-400 mt-0.5">Authentication & Identity Management</p>
+              <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">CyberShield</h2>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">Authentication & Identity Management</p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-zinc-800 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 transition-colors cursor-pointer"
             aria-label="Close"
           >
             <X size={16} />
@@ -215,17 +215,17 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
         {user ? (
           /* Logged In View with Account Deletion Option */
           <div className="space-y-4">
-            <div className="p-4 bg-zinc-900/70 border border-zinc-800 rounded-lg flex items-center space-x-3">
+            <div className="p-4 bg-zinc-100 dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 rounded-lg flex items-center space-x-3">
               {user.photoURL ? (
-                <img src={user.photoURL} alt={user.displayName || "User"} className="w-10 h-10 rounded-full border border-zinc-700" referrerPolicy="no-referrer" />
+                <img src={user.photoURL} alt={user.displayName || "User"} className="w-10 h-10 rounded-full border border-zinc-300 dark:border-zinc-700" referrerPolicy="no-referrer" />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-zinc-300 font-mono">
+                <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 flex items-center justify-center font-bold text-zinc-700 dark:text-zinc-300 font-mono">
                   {user.email ? user.email.charAt(0).toUpperCase() : "U"}
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-zinc-100 truncate">{user.displayName || user.email?.split("@")[0]}</p>
-                <p className="text-[11px] text-zinc-400 truncate font-mono">{user.email}</p>
+                <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{user.displayName || user.email?.split("@")[0]}</p>
+                <p className="text-[11px] text-zinc-600 dark:text-zinc-400 truncate font-mono">{user.email}</p>
                 <div className="mt-1 flex items-center space-x-2">
                   <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
                     isAdmin 
@@ -246,13 +246,13 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                 <p className="text-rose-400 font-bold uppercase tracking-wider">
                   Confirm Permanent Account Deletion
                 </p>
-                <p className="text-zinc-300">
+                <p className="text-zinc-700 dark:text-zinc-300">
                   Are you sure you want to permanently delete your account and all associated threat records? This action cannot be undone.
                 </p>
                 <div className="flex gap-2 pt-1">
                   <button
                     onClick={() => setConfirmDelete(false)}
-                    className="flex-1 py-2 px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 rounded font-medium text-xs transition-colors cursor-pointer"
+                    className="flex-1 py-2 px-3 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 rounded font-medium text-xs transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -277,7 +277,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                 <div className="flex gap-2 pt-2">
                   <button
                     onClick={logout}
-                    className="flex-1 py-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-800 transition-colors cursor-pointer"
+                    className="flex-1 py-2 px-3 rounded-lg bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-medium border border-zinc-200 dark:border-zinc-800 transition-colors cursor-pointer"
                   >
                     Sign Out
                   </button>
@@ -295,14 +295,14 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
           /* Authentication Forms */
           <div className="space-y-4">
             {/* Auth Method Selector */}
-            <div className="flex bg-zinc-900/80 p-1 rounded-lg border border-zinc-800">
+            <div className="flex bg-zinc-100 dark:bg-zinc-900/80 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800">
               <button
                 type="button"
                 onClick={() => { setAuthMode("email"); setOtpStep(false); }}
                 className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
                   authMode === "email" 
-                    ? "bg-zinc-800 text-zinc-100 shadow-xs" 
-                    : "text-zinc-400 hover:text-zinc-200"
+                    ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs" 
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:text-zinc-200"
                 }`}
               >
                 Email & Password
@@ -312,8 +312,8 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                 onClick={() => { setAuthMode("google"); setOtpStep(false); }}
                 className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
                   authMode === "google" 
-                    ? "bg-zinc-800 text-zinc-100 shadow-xs" 
-                    : "text-zinc-400 hover:text-zinc-200"
+                    ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs" 
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:text-zinc-200"
                 }`}
               >
                 Google Sign In
@@ -323,7 +323,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
             {authMode === "google" ? (
               /* Google Sign In */
               <div className="space-y-4 pt-2">
-                <p className="text-xs text-zinc-400 text-center">
+                <p className="text-xs text-zinc-600 dark:text-zinc-400 text-center">
                   Sign in instantly with your verified Google account to authenticate your session.
                 </p>
 
@@ -358,19 +358,19 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
               /* Email & Password Form */
               <form onSubmit={handleSendEmailOtpStep} className="space-y-3 pt-1">
                 <div>
-                  <label className="block text-[11px] text-zinc-400 font-medium mb-1">Email Address</label>
+                  <label className="block text-[11px] text-zinc-600 dark:text-zinc-400 font-medium mb-1">Email Address</label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@company.com"
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-600"
+                    className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-600"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] text-zinc-400 font-medium mb-1">Password</label>
+                  <label className="block text-[11px] text-zinc-600 dark:text-zinc-400 font-medium mb-1">Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
@@ -378,14 +378,14 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-3 pr-10 py-2 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-600"
+                      className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg pl-3 pr-10 py-2 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-600"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       title={showPassword ? "Hide password" : "Show password"}
                       aria-label={showPassword ? "Hide password" : "Show password"}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200 transition-colors p-1 cursor-pointer"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:text-zinc-200 transition-colors p-1 cursor-pointer"
                     >
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
@@ -396,7 +396,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                       {/* Password Strength Bar */}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-[10px] font-mono">
-                          <span className="text-zinc-400">Strength:</span>
+                          <span className="text-zinc-600 dark:text-zinc-400">Strength:</span>
                           <span className={`font-semibold ${
                             password.length === 0 ? "text-zinc-500" :
                             criteriaPassedCount <= 1 ? "text-rose-400" :
@@ -409,7 +409,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                              criteriaPassedCount === 4 ? "Good" : "Strong (All Criteria Met)"}
                           </span>
                         </div>
-                        <div className="w-full bg-zinc-800/80 rounded-full h-1 overflow-hidden">
+                        <div className="w-full bg-zinc-200 dark:bg-zinc-800/80 rounded-full h-1 overflow-hidden">
                           <div 
                             className={`h-1 rounded-full transition-all duration-300 ${
                               password.length === 0 ? "w-0" :
@@ -422,8 +422,8 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                       </div>
 
                       {/* Criteria Checklist */}
-                      <div className="p-2.5 rounded-md bg-zinc-950 border border-zinc-800/80 space-y-1.5 text-[10px]">
-                        <span className="text-zinc-400 font-medium block">Standard Security Criteria:</span>
+                      <div className="p-2.5 rounded-md bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800/80 space-y-1.5 text-[10px]">
+                        <span className="text-zinc-600 dark:text-zinc-400 font-medium block">Standard Security Criteria:</span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1">
                           {passwordCriteria.map((crit) => (
                             <div 
@@ -451,7 +451,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                 {/* Confirm Password (Registration only) */}
                 {isRegistering && (
                   <div>
-                    <label className="block text-[11px] text-zinc-400 font-medium mb-1">Confirm Password</label>
+                    <label className="block text-[11px] text-zinc-600 dark:text-zinc-400 font-medium mb-1">Confirm Password</label>
                     <div className="relative">
                       <input
                         type={showConfirmPassword ? "text" : "password"}
@@ -459,14 +459,14 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-3 pr-10 py-2 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-600"
+                        className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg pl-3 pr-10 py-2 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-600"
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         title={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                         aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200 transition-colors p-1 cursor-pointer"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:text-zinc-200 transition-colors p-1 cursor-pointer"
                       >
                         {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                       </button>
@@ -492,7 +492,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                   </button>
                 </div>
 
-                <div className="flex items-center justify-center pt-2 border-t border-zinc-800/80">
+                <div className="flex items-center justify-center pt-2 border-t border-zinc-200 dark:border-zinc-800/80">
                   <button
                     type="button"
                     onClick={() => {
@@ -500,7 +500,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                       setErrorMsg(null);
                       setConfirmPassword("");
                     }}
-                    className="text-xs text-zinc-400 hover:text-emerald-400 transition-colors cursor-pointer"
+                    className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-emerald-400 transition-colors cursor-pointer"
                   >
                     {isRegistering ? "Already have an account? Sign In" : "Don't have an account? Create one"}
                   </button>
@@ -509,9 +509,9 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
             ) : (
               /* OTP Verification Step */
               <form onSubmit={handleVerifyOtp} className="space-y-4 pt-1">
-                <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs space-y-1">
-                  <p className="text-zinc-300 font-medium">
-                    OTP Dispatched to: <strong className="font-mono text-zinc-100">{email}</strong>
+                <div className="p-3 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs space-y-1">
+                  <p className="text-zinc-700 dark:text-zinc-300 font-medium">
+                    OTP Dispatched to: <strong className="font-mono text-zinc-900 dark:text-zinc-100">{email}</strong>
                   </p>
                   <p className="text-zinc-500 text-[11px]">
                     Enter the 6-digit one-time password to verify your email and activate your session.
@@ -531,7 +531,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                 </div>
 
                 <div>
-                  <label className="block text-[11px] text-zinc-400 font-medium mb-1">6-Digit Email OTP</label>
+                  <label className="block text-[11px] text-zinc-600 dark:text-zinc-400 font-medium mb-1">6-Digit Email OTP</label>
                   <input
                     type="text"
                     maxLength={6}
@@ -539,7 +539,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                     value={enteredOtp}
                     onChange={(e) => setEnteredOtp(e.target.value.replace(/\D/g, ""))}
                     placeholder="123456"
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-center text-lg tracking-[0.3em] font-mono text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-2.5 text-center text-lg tracking-[0.3em] font-mono text-zinc-900 dark:text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
 
@@ -556,7 +556,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                     <button
                       type="button"
                       onClick={() => setOtpStep(false)}
-                      className="hover:text-zinc-300 transition-colors cursor-pointer"
+                      className="hover:text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer"
                     >
                       Back to Login
                     </button>
