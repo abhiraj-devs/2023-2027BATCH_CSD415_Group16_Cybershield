@@ -10,15 +10,21 @@ Project Group Number: 16
 | Who?              | Work Assigned              | Work Done                  | Work Scheduled for next    | Assessment by      |
 |                   |                            |                            | 14 Days                    | Guide              |
 +-------------------+----------------------------+----------------------------+----------------------------+--------------------+
-| Roll No: 59       | Implement Frontend UI for  | Built React components for | Finalizing CI/CD           |                    |
-| Sreedevi R P      | Phishing, Malware, Network.| Phishing & Malware views.  | integration and UI polish. |                    |
+| Roll No: 59       | Design and implement the   | Successfully built and     | Finalizing CI/CD           |                    |
+| Sreedevi R P      | frontend UI for Phishing,  | styled the UI components   | integration and UI polish. |                    |
+|                   | Malware, and Network       | for Phishing and Malware   |                            |                    |
+|                   | dashboards.                | views, including charts.   |                            |                    |
 +-------------------+----------------------------+----------------------------+----------------------------+--------------------+
-| Roll No: 65       | Develop Backend pipelines, | Implemented Threat Intel,  | Bug fixing and extensive   |                    |
-| Vishnu V Nair     | Alerts, and Audit Logging. | Alerts & History modules.  | testing of threat feeds.   |                    |
+| Roll No: 65       | Develop backend pipelines, | Implemented Threat Intel   | Bug fixing and extensive   |                    |
+| Vishnu V Nair     | configure automated Alerts | aggregation, real-time     | testing of threat feeds.   |                    |
+|                   | engine, and implement the  | Alerts system, and History |                            |                    |
+|                   | Audit Logging features.    | tracking data modules.     |                            |                    |
 +-------------------+----------------------------+----------------------------+----------------------------+--------------------+
-| Roll No: 66       | System Integration, RBAC,  | Developed AuthContext, API | Final project deployment   |                    |
-| Abhi Raj          | Testing & API Docs.        | Docs, and Unit Tests.      | & performance benchmarks.  |                    |
-+-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 66       | Manage system integration, | Developed AuthContext for  | Final project deployment   |                    |
+| Abhi Raj          | implement RBAC, write      | user login, finalized API  | & performance benchmarks.  |                    |
+|                   | testing suites, and draft  | Docs, and created Unit     |                            |                    |
+|                   | all API documentation.     | Tests for core functions.  |                            |                    |
++-------------------+----------------------------+----------------------------+--------------------+
 
 PROJECT UPDATE: SYSTEM INTEGRATION & ARCHITECTURE DETAILS
 ---------------------------------------------------------
