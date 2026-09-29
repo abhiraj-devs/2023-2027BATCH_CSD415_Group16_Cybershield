@@ -1,5 +1,5 @@
 import React from "react";
-import { Joyride, Step } from "react-joyride";
+import { Joyride, } from "react-joyride";
 
 const steps: any[] = [
   {

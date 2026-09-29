@@ -1,116 +1,42 @@
 import React, { useState, useEffect } from "react";
 import {
   Globe,
-  Search,
+  
   RefreshCw,
   AlertTriangle,
   ShieldAlert,
   CheckCircle2,
-  Shield,
+  
   ChevronUp,
   ChevronDown,
   ExternalLink,
   Cpu,
-  Zap,
+  
   Tag,
   Copy,
-  Check,
-  Activity,
-  Database,
-  ShieldCheck,
-  ArrowRight,
-  Filter
-} from "lucide-react";
+  Check} from "lucide-react";
 import { ThreatItem } from "../types";
 import {
   fetchThreatIntel,
   refreshThreatIntel,
-  lookupVirusTotalIntel,
+  
   getVirusTotalStatus,
-  lookupPhishTank
-} from "../services/api";
-
-const MapView = () => {
-  const points = [
-    { x: 350, y: 150, severity: "CRITICAL", label: "C2 Cluster (East Europe)" },
-    { x: 500, y: 200, severity: "HIGH", label: "LockBit Relay (Asia)" },
-    { x: 200, y: 180, severity: "MEDIUM", label: "Phish Host (NA)" },
-    { x: 100, y: 250, severity: "HIGH", label: "Stealer Botnet (SA)" },
-  ];
-
-  return (
-    <div id="threat-intel-map" className="p-5 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800">
-      <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-2">
-        <div className="flex items-center space-x-2">
-          <Globe size={16} className="text-zinc-600 dark:text-zinc-400" />
-          <span>Global Threat Telemetry</span>
-        </div>
-        <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          LIVE RADAR
-        </span>
-      </h3>
-      <div className="relative w-full aspect-video bg-zinc-50 dark:bg-zinc-950 rounded border border-zinc-300 dark:border-zinc-900 flex items-center justify-center overflow-hidden">
-        {/* Abstract map shapes */}
-        <div className="absolute inset-0 opacity-20">
-          <svg viewBox="0 0 800 400" className="w-full h-full text-zinc-500 fill-current">
-            <path d="M150 100 Q 200 50 250 100 T 350 100 T 450 150 T 550 100 T 650 150 L 650 300 Q 550 250 450 300 T 250 300 T 150 250 Z" />
-            <path d="M50 150 Q 100 100 120 150 T 150 200 L 100 250 Z" />
-            <path d="M600 250 Q 650 200 700 250 T 750 300 L 650 350 Z" />
-          </svg>
-        </div>
-        
-        {/* Map Grid */}
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)',
-          backgroundSize: '20px 20px'
-        }} />
-
-        {/* Threat Pulses */}
-        {points.map((p, i) => (
-          <div key={i} className="absolute group cursor-pointer" style={{ left: `${(p.x / 800) * 100}%`, top: `${(p.y / 400) * 100}%` }}>
-            <div className="relative flex items-center justify-center">
-              <div className={`absolute w-5 h-5 rounded-full animate-ping ${
-                p.severity === 'CRITICAL' ? 'bg-red-500/40' : 
-                p.severity === 'HIGH' ? 'bg-orange-500/40' : 'bg-yellow-500/40'
-              }`} />
-              <div className={`w-2 h-2 rounded-full ${
-                p.severity === 'CRITICAL' ? 'bg-red-500' : 
-                p.severity === 'HIGH' ? 'bg-orange-500' : 'bg-yellow-500'
-              }`} />
-            </div>
-            <div className="hidden group-hover:block absolute bottom-4 left-1/2 -translate-x-1/2 px-2 py-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-[10px] text-zinc-800 dark:text-zinc-200 rounded whitespace-nowrap z-20 shadow-lg font-mono">
-              {p.label}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-3 flex items-center justify-between text-[11px] text-zinc-500 font-mono">
-        <span>Active C2 nodes: 24</span>
-        <span>Observed countries: 68</span>
-      </div>
-    </div>
-  );
-};
+  } from "../services/api";
 
 export default function ThreatIntelView({ searchQuery }: { searchQuery: string }) {
   const [intel, setIntel] = useState<ThreatItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>("vt_lockbit");
-  const [vtStatus, setVtStatus] = useState<{ configured: boolean; service: string }>({ configured: false, service: "VirusTotal v3" });
   
   // Real-time lookup console state
-  const [queryInput, setQueryInput] = useState("");
-  const [lookupLoading, setLookupLoading] = useState(false);
-  const [lookupMessage, setLookupMessage] = useState<string | null>(null);
+  
+    
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'VT' | 'HASH' | 'IP' | 'DOMAIN' | 'CVE'>('ALL');
 
   // PhishTank Quick Check state
-  const [ptUrlInput, setPtUrlInput] = useState("");
-  const [ptChecking, setPtChecking] = useState(false);
-  const [ptResult, setPtResult] = useState<any>(null);
+      
 
   useEffect(() => {
     setLoading(true);
@@ -119,7 +45,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
       getVirusTotalStatus()
     ]).then(([threatData, statusData]) => {
       setIntel(threatData || []);
-      setVtStatus(statusData || { configured: false, service: "VirusTotal v3" });
+      console.log(statusData || { configured: false, service: "VirusTotal v3" });
       setLoading(false);
     }).catch(() => {
       setLoading(false);
@@ -128,12 +54,12 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    setLookupMessage(null);
+    console.log(null);
     try {
       const data = await refreshThreatIntel();
       setIntel(data || []);
-      setLookupMessage("Synchronized threat feed with live VirusTotal indicators.");
-      setTimeout(() => setLookupMessage(null), 4000);
+      console.log("Synchronized threat feed with live VirusTotal indicators.");
+      setTimeout(() => console.log(null), 4000);
     } catch (err) {
       console.error(err);
     } finally {
@@ -141,62 +67,14 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
     }
   };
 
-  const handleVirusTotalLookup = async (sample?: string) => {
-    const target = sample || queryInput;
-    if (!target.trim()) return;
-
-    setLookupLoading(true);
-    setLookupMessage(null);
-
-    try {
-      const result = await lookupVirusTotalIntel(target.trim());
-      if (result) {
-        // Prepend to intel list if not already there
-        setIntel(prev => {
-          const filtered = prev.filter(i => i.indicator.toLowerCase() !== result.indicator.toLowerCase());
-          return [result, ...filtered];
-        });
-        setExpandedId(result.id);
-        setLookupMessage(`Successfully retrieved VirusTotal live threat intelligence for ${target.trim().substring(0, 24)}...`);
-        if (!sample) setQueryInput("");
-      }
-    } catch (err: any) {
-      console.error(err);
-      setLookupMessage("Notice: VirusTotal lookup completed with forensic fallback telemetry.");
-    } finally {
-      setLookupLoading(false);
-    }
-  };
-
-  const handlePhishTankCheck = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!ptUrlInput.trim()) return;
-    setPtChecking(true);
-    try {
-      const res = await lookupPhishTank(ptUrlInput.trim());
-      setPtResult(res);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setPtChecking(false);
-    }
-  };
-
-  const copyToClipboard = (text: string, id: string) => {
+      const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
   // Quick test samples
-  const sampleIndicators = [
-    { label: "LockBit 3.0 (SHA256)", value: "24f95e5d97def767393c266481665745263029b236575b5cb4dd16e9f17b653b" },
-    { label: "RedLine Stealer (SHA256)", value: "ed01ebf83334a193707a43a396482b1c5a31dd9451b54314fa76103b4096da80" },
-    { label: "C2 Botnet IP", value: "185.220.101.5" },
-    { label: "Apple Phish Domain", value: "secure-auth-apple-support-verify.com" },
-  ];
-
-  const filteredIntel = intel.filter(item => {
+    const filteredIntel = intel.filter(item => {
     if (!item) return false;
     const name = item.threatName || (item as any).threatLabel || (item as any).name || "";
     const src = item.source || "";
@@ -261,7 +139,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-4">
-          {/* Feed Filter Bar */}
+          {/* Feed Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3">
             <div className="flex flex-wrap items-center gap-1.5">
               {[
@@ -537,7 +415,7 @@ export default function ThreatIntelView({ searchQuery }: { searchQuery: string }
             <div className="space-y-2.5">
               {[
                 { name: 'VirusTotal v3 Live Threat Feed', status: 'ACTIVE / REAL-TIME', highlight: true },
-                { name: 'PhishTank Anti-Phishing Database', status: 'SYNCED', highlight: false },
+                { name: 'PhishTank Anti-Phishing ', status: 'SYNCED', highlight: false },
                 { name: 'CISA Known Exploited Vulnerabilities', status: 'SYNCED', highlight: false },
                 { name: 'MITRE ATT&CK Framework', status: 'SYNCED', highlight: false },
                 { name: 'AlienVault OTX Community Pulse', status: 'SYNCED', highlight: false },

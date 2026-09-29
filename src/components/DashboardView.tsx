@@ -1,13 +1,13 @@
 import React from "react";
 import { 
   ShieldAlert, 
-  Bug, 
-  Radio, 
-  Globe, 
-  Bell, 
+   
+   
+   
+   
   TrendingUp, 
   ShieldCheck, 
-  AlertTriangle,
+  
   Activity,
   ArrowUpRight,
   Download,
@@ -33,6 +33,7 @@ interface DashboardViewProps {
   networkEvents: NetworkEvent[];
   threatIntel: ThreatItem[];
   onNavigate: (tab: string) => void;
+  onOpenQuickScan?: () => void;
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -52,8 +53,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function DashboardView({
-  summary, alerts, networkEvents, threatIntel, onNavigate,
-}: DashboardViewProps) {
+  summary, alerts, networkEvents, threatIntel, onNavigate, onOpenQuickScan}: DashboardViewProps) {
   
   const handleDownloadReport = () => {
     let csv = "Type,ID,Timestamp,Severity/Status,Detail\n";
@@ -116,6 +116,16 @@ export default function DashboardView({
         </div>
 
         <div className="flex flex-wrap gap-2 shrink-0 w-full sm:w-auto pt-2 sm:pt-0">
+          {onOpenQuickScan && (
+            <button
+              onClick={onOpenQuickScan}
+              className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
+              title="Instant Unified Threat Scan (⌘K)"
+            >
+              <Zap size={14} />
+              <span>Quick Scan</span>
+            </button>
+          )}
           <button
             onClick={() => onNavigate('phishing')}
             className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded text-zinc-950 bg-zinc-100 hover:bg-white font-semibold text-xs transition-colors flex items-center justify-center space-x-1.5"

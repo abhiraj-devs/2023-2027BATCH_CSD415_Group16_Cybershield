@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell, AlertTriangle, CheckCircle2, Send, Settings, ShieldAlert, RefreshCw } from "lucide-react";
+import { Bell, AlertTriangle, CheckCircle2, Send, Settings, ShieldAlert} from "lucide-react";
 import { SecurityAlert } from "../types";
 import { fetchAlerts, acknowledgeAlert, fetchSettings, updateSettings, testWebhook } from "../services/api";
 
@@ -8,7 +8,6 @@ export default function AlertsView() {
   const [settings, setSettings] = useState({ discordWebhookUrl: "", slackWebhookUrl: "", minSeverity: "MEDIUM" });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
-  const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAlerts().then(setAlerts).catch(() => {});
@@ -16,8 +15,8 @@ export default function AlertsView() {
   }, []);
 
   const triggerNotice = (msg: string) => {
-    setActionNotice(msg);
-    setTimeout(() => setActionNotice(null), 4000);
+    
+    setTimeout(() => console.log(null), 4000);
   };
 
   const handleAck = async (id: string) => {

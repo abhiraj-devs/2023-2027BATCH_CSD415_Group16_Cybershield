@@ -20,15 +20,35 @@ function MainApp() {
   const [alerts, setAlerts] = useState<SecurityAlert[]>([]);
   const [networkEvents, setNetworkEvents] = useState<NetworkEvent[]>([]);
   const [threatIntel, setThreatIntel] = useState<ThreatItem[]>([]);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem("cybershield_theme");
+      if (saved !== null) {
+        return saved === "dark";
+      }
+      return true; // Default to dark cybersecurity SOC theme
+    } catch {
+      return true;
+    }
+  });
   const [searchQuery, setSearchQuery] = useState("");
-  const [runTour, setRunTour] = useState(true);
+  const [runTour] = useState(true);
 
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
+    try {
+      if (isDarkMode) {
+        document.documentElement.classList.add("dark");
+        document.body.classList.add("dark");
+        document.documentElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("cybershield_theme", "dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+        document.body.classList.remove("dark");
+        document.documentElement.setAttribute("data-theme", "light");
+        localStorage.setItem("cybershield_theme", "light");
+      }
+    } catch (e) {
+      console.warn("Theme toggle error:", e);
     }
   }, [isDarkMode]);
 
@@ -86,6 +106,7 @@ function MainApp() {
           networkEvents={networkEvents}
           threatIntel={threatIntel}
           onNavigate={setActiveTab}
+          onOpenQuickScan={() => window.dispatchEvent(new CustomEvent('open-quick-scan'))}
         />
       )}
       {activeTab === "phishing" && <PhishingView />}
@@ -95,7 +116,12 @@ function MainApp() {
       {activeTab === "threatIntel" && <ThreatIntelView searchQuery={searchQuery} />}
       {activeTab === "alerts" && <AlertsView />}
       {activeTab === "history" && <HistoryView />}
-      {activeTab === "settings" && <SettingsView />}
+      {activeTab === "settings" && (
+        <SettingsView 
+          isDarkMode={isDarkMode} 
+          onToggleTheme={() => setIsDarkMode(prev => !prev)} 
+        />
+      )}
     </Layout>
   );
 }

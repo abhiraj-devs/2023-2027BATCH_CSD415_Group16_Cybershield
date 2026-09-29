@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Settings, Menu, X, Bell, Moon, Sun } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Settings, Menu, X, Bell, Moon, Sun, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './AuthModal';
+import QuickScanModal from './QuickScanModal';
 import CyberShieldLogo from './CyberShieldLogo';
 
 interface LayoutProps {
@@ -23,20 +24,36 @@ export default function Layout({
   children, 
   activeTab, 
   setActiveTab, 
-  systemStatus,
   criticalAlertsCount,
   isDarkMode,
   toggleTheme,
-  searchQuery: externalSearchQuery,
-  setSearchQuery: setExternalSearchQuery,
 }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [internalSearchQuery, setInternalSearchQuery] = useState('');
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [quickScanOpen, setQuickScanOpen] = useState(false);
   const { user, isAdmin, emailVerified } = useAuth();
 
-  const searchQuery = externalSearchQuery !== undefined ? externalSearchQuery : internalSearchQuery;
-  const setSearchQuery = setExternalSearchQuery || setInternalSearchQuery;
+  // Global keyboard shortcut & event to open Quick Scan from ANY view
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setQuickScanOpen((prev) => !prev);
+      }
+    };
+    const handleCustomOpen = () => setQuickScanOpen(true);
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('open-quick-scan', handleCustomOpen);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('open-quick-scan', handleCustomOpen);
+    };
+  }, []);
+
+  const searchQuery = internalSearchQuery;
+  const setSearchQuery = setInternalSearchQuery;
 
   const navItems: { id: string; label: string; badge?: string }[] = [
     { id: 'dashboard', label: 'SOC Dashboard' },
@@ -48,8 +65,16 @@ export default function Layout({
   ];
 
   return (
-    <div className="flex h-screen bg-zinc-50 dark:bg-[#030303] text-zinc-900 dark:text-zinc-100 font-sans antialiased overflow-hidden selection:bg-zinc-200 dark:bg-zinc-800 selection:text-zinc-800 dark:text-zinc-200">
+    <div className="flex h-screen bg-zinc-50 dark:bg-[#030303] text-zinc-900 dark:text-zinc-100 font-sans antialiased overflow-hidden selection:bg-blue-600 selection:text-white">
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <QuickScanModal 
+        isOpen={quickScanOpen} 
+        onClose={() => setQuickScanOpen(false)} 
+        onNavigateToView={(viewId) => {
+          setActiveTab(viewId);
+          setQuickScanOpen(false);
+        }}
+      />
 
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
@@ -80,6 +105,19 @@ export default function Layout({
             aria-label="Close menu"
           >
             <X size={18} />
+          </button>
+        </div>
+
+        {/* Global Quick Scan Sidebar Trigger */}
+        <div className="px-3 pt-3 pb-1">
+          <button
+            onClick={() => { setQuickScanOpen(true); setSidebarOpen(false); }}
+            className="w-full flex items-center px-3 py-2 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold transition-colors cursor-pointer"
+          >
+            <div className="flex items-center space-x-2">
+              <Zap size={14} className="shrink-0" />
+              <span>Quick Threat Scan</span>
+            </div>
           </button>
         </div>
 
@@ -187,7 +225,7 @@ export default function Layout({
       {/* Main Container */}
       <main className="flex-1 flex flex-col overflow-y-auto bg-zinc-50 dark:bg-[#030303]">
         {/* Top Header */}
-        <header className="h-14 sm:h-16 border-b border-zinc-200 dark:border-zinc-800/80 flex items-center justify-between px-3 sm:px-6 shrink-0 bg-zinc-100 dark:bg-[#050505]">
+        <header className="h-14 sm:h-16 border-b border-zinc-200 dark:border-zinc-800/80 flex items-center justify-between px-3 sm:px-6 shrink-0 bg-white dark:bg-[#050505]">
           <div className="flex items-center space-x-2.5 sm:space-x-4">
             <button 
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -208,10 +246,11 @@ export default function Layout({
             {toggleTheme && (
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-md bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0"
-                aria-label="Toggle theme"
+                className="p-2 rounded-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0 shadow-xs"
+                aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark SOC Mode"}
               >
-                {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+                {isDarkMode ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-zinc-700" />}
               </button>
             )}
             

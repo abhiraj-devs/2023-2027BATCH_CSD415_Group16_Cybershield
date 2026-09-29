@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Radio, Activity, ArrowUpRight, ShieldAlert, Cpu, RefreshCw, Terminal, Globe, Gauge, Download, Upload, Play } from "lucide-react";
+import { Radio, Activity, ArrowUpRight, ShieldAlert,  RefreshCw,  Globe, Gauge, Download, Upload, Play } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { NetworkEvent } from "../types";
 import { fetchNetworkEvents, fetchNetworkSummary } from "../services/api";

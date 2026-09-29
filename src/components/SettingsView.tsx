@@ -1,10 +1,15 @@
 import React, { useState } from "react";
-import { Settings, Cpu, Shield } from "lucide-react";
+import { Settings, Sun, Moon, Palette } from "lucide-react";
 import { clearAllHistory } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import AuthModal from "./AuthModal";
 
-export default function SettingsView() {
+interface SettingsViewProps {
+  isDarkMode?: boolean;
+  onToggleTheme?: () => void;
+}
+
+export default function SettingsView({ isDarkMode = true, onToggleTheme }: SettingsViewProps) {
   const { 
     user, 
     isAdmin, 
@@ -291,6 +296,69 @@ export default function SettingsView() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Appearance & Theme Settings Card */}
+        <div className="p-6 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 space-y-4">
+          <div className="border-b border-zinc-200 dark:border-zinc-800 pb-2">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2">
+              <Palette size={16} className="text-zinc-600 dark:text-zinc-400" />
+              <span>Theme & Interface</span>
+            </h3>
+          </div>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 font-sans">
+            Switch between high-contrast Dark SOC mode and daytime Light theme.
+          </p>
+
+          <div className="grid grid-cols-2 gap-3 pt-1">
+            <button
+              onClick={() => {
+                if (isDarkMode && onToggleTheme) onToggleTheme();
+              }}
+              className={`p-3.5 rounded-md border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                !isDarkMode
+                  ? "bg-white border-zinc-900 text-zinc-900 shadow-sm ring-1 ring-zinc-900"
+                  : "bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <Sun size={18} className={!isDarkMode ? "text-amber-500" : "text-zinc-400"} />
+                {!isDarkMode && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-900 font-bold border border-zinc-300">
+                    Active
+                  </span>
+                )}
+              </div>
+              <div>
+                <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Light Theme</p>
+                <p className="text-[10px] text-zinc-500">Daytime operational clarity</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                if (!isDarkMode && onToggleTheme) onToggleTheme();
+              }}
+              className={`p-3.5 rounded-md border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                isDarkMode
+                  ? "bg-zinc-900 border-emerald-500/80 text-white shadow-sm ring-1 ring-emerald-500/50"
+                  : "bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <Moon size={18} className={isDarkMode ? "text-emerald-400" : "text-zinc-400"} />
+                {isDarkMode && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40">
+                    Active
+                  </span>
+                )}
+              </div>
+              <div>
+                <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Dark SOC Theme</p>
+                <p className="text-[10px] text-zinc-500">High-contrast cybersecurity mode</p>
+              </div>
+            </button>
           </div>
         </div>
 

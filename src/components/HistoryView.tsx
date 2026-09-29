@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Search, ShieldAlert, Bug, RefreshCw } from "lucide-react";
+import { FileText,  ShieldAlert, Bug, RefreshCw } from "lucide-react";
 import { PhishingScan, MalwareScan } from "../types";
 import { fetchPhishingHistory, fetchMalwareHistory } from "../services/api";
 

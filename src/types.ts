@@ -5,6 +5,47 @@ export interface User {
   role: string;
 }
 
+export interface DualEngineResult {
+  engine1: {
+    name: string;
+    endpoint: string;
+    isPhishing: boolean;
+    probability: number;
+    features: {
+      DomainLength?: number;
+      IsDomainIP?: number;
+      IsHTTPS?: number;
+      NoOfSubDomain?: number;
+      [key: string]: any;
+    };
+    status: 'ONLINE' | 'OFFLINE' | 'DEGRADED';
+    latencyMs?: number;
+  };
+  engine2: {
+    name: string;
+    riskScore: number;
+    classification: 'SAFE' | 'SUSPICIOUS' | 'PHISHING';
+    confidence: number;
+    featureSummary: {
+      urlLength: number;
+      hostnameLength: number;
+      dotsCount: number;
+      hyphensCount: number;
+      hasHttps: boolean;
+      isIpAddress: boolean;
+      suspiciousKeywordsCount: number;
+      specialCharsCount: number;
+    };
+  };
+  consensus: {
+    agreement: 'FULL_AGREEMENT' | 'DISAGREEMENT' | 'PARTIAL';
+    finalVerdict: 'CONFIRMED_PHISHING' | 'SUSPICIOUS' | 'VERIFIED_SAFE';
+    combinedScore: number;
+    confidence: number;
+    description: string;
+  };
+}
+
 export interface PhishingScan {
   id: string;
   url: string;
@@ -24,6 +65,7 @@ export interface PhishingScan {
   aiExplanation?: string;
   modelVersion: string;
   scannedAt: string;
+  dualEngine?: DualEngineResult;
 }
 
 export interface MalwareScan {
@@ -189,4 +231,37 @@ export interface CrowdsourcedThreat {
   reportedBy: string;
   reportedAt: string;
   status: 'PENDING' | 'VERIFIED' | 'DISCARDED';
+}
+
+export interface QuickScanResult {
+  id: string;
+  inputType: 'URL' | 'HASH_MD5' | 'HASH_SHA1' | 'HASH_SHA256' | 'IP' | 'DOMAIN';
+  query: string;
+  normalizedQuery: string;
+  verdict: 'MALICIOUS' | 'SUSPICIOUS' | 'CLEAN' | 'UNKNOWN';
+  threatLevel: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'SAFE';
+  threatName?: string;
+  riskScore: number;
+  confidence: number;
+  analysisSummary: string;
+  enginesDetected: number;
+  enginesTotal: number;
+  tags: string[];
+  vendorDetections?: Array<{ engine: string; category: string; result: string }>;
+  details: {
+    urlFeatures?: {
+      hasHttps: boolean;
+      dotsCount: number;
+      hyphensCount: number;
+      suspiciousKeywordsCount: number;
+      isIpAddress: boolean;
+    };
+    phishTankMatch?: boolean;
+    hashDetails?: {
+      algorithm: string;
+      entropy?: string;
+      suggestedFamily?: string;
+    };
+  };
+  scannedAt: string;
 }
