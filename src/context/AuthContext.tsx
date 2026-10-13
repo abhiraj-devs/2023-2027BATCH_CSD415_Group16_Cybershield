@@ -7,7 +7,8 @@ import {
   deleteUser,
   signOut, 
   sendEmailVerification, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  browserPopupRedirectResolver
 } from "firebase/auth";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { auth, db, googleProvider } from "../services/firebase";
@@ -97,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async () => {
     setError(null);
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider, browserPopupRedirectResolver);
       setUser(result.user);
     } catch (err: any) {
       console.error("Google sign in error:", err);

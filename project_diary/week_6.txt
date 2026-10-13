@@ -1,0 +1,120 @@
+College of Engineering, Chengannur
+Department of Computer Engineering
+BTech Computer Science and Engineering
+CSD415 Project Phase 1 (2026)
+Periodic Report: 24-09-26 to 07-10-26 (Week 6)
+Title: CyberShield AI – Real-Time AI Threat Detection Platform
+Project Group Number: 16
+
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Who?              | Work Assigned              | Work Done                  | Work Scheduled for next    | Assessment by      |
+|                   |                            |                            | 14 Days                    | Guide              |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 59       | Author project research    | Completed project research | Finalize paper submission, |                    |
+| Sreedevi R P      | paper and conduct web      | paper draft (IEEE format)  | evaluate live web scraper  |                    |
+|                   | scraping feasibility study | and studied web scraping   | feeds, and prepare slides. |                    |
+|                   | for live threat feeds.     | for threat intelligence.   |                            |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 65       | Build and train the        | Developed Random Forest    | Hyperparameter tuning,     |                    |
+| Vishnu V Nair     | Random Forest Phishing URL | model with 15 lexical &    | dataset expansion, and     |                    |
+|                   | Classifier with feature    | structural URL features    | cross-validation testing.  |                    |
+|                   | extraction pipeline.       | (train_model.py, features).|                            |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 66       | Integrate ML model into    | Successfully integrated    | Final performance audits,  |                    |
+| Abhi Raj          | the website backend, build | RF model in website API,   | end-to-end security test,  |                    |
+|                   | dual-engine detection, and | dual-engine architecture,  | and deployment validation. |                    |
+|                   | harden system stability.   | and solved DB lifecycles.  |                            |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+
+PROJECT UPDATE: ADVANCED MODEL DEPLOYMENT, RESEARCH PAPER & SYSTEM HARDENING (WEEK 6)
+-------------------------------------------------------------------------------------
+This section details recent updates completed during Week 6 for the CyberShield AI Platform, split by individual contributor.
+
+=====================================================================================
+1. INDIVIDUAL CONTRIBUTIONS & MODULE DETAILS
+=====================================================================================
+
+A. VISHNU V NAIR (Roll No: 65) - MACHINE LEARNING & FEATURE ENGINEERING
+-----------------------------------------------------------------------
+1. Random Forest Phishing URL Classifier Development:
+   - Code Placement: /train_model.py, /features.py
+   - Description: Implemented a robust Random Forest classification architecture (RandomForestClassifier from scikit-learn) to identify zero-day and obfuscated phishing links based on empirical statistical traits.
+   - Dataset & Training: Formulated balanced training corpora containing legitimate domain baselines and active malicious attack signatures.
+   - Evaluation Metrics: Assessed model performance using accuracy, precision, recall, and F1-score with confusion matrix validation.
+   - Model Persistence: Exported serialised model parameters and weights into joblib format for seamless backend inference.
+
+2. Comprehensive 15-Feature URL Extraction Engine:
+   - Code Placement: /features.py
+   - Working: Designed an automated lexical and structural extractor calculating 15 distinctive features:
+     * Length Metrics: Total URL length, domain/host length, path length, and query string length.
+     * Structural Tokens: Dot counts, hyphens, slashes, '@' symbol occurrences, and digit distribution.
+     * Subdomain Depth: Extracted root domain and calculated subdomain depth via tldextract.
+     * Shannon Entropy: Custom entropy calculator detects randomized strings, obfuscation, and algorithmic domain generation (DGA).
+     * Phishing Keyword Matching: Scans for high-frequency credential harvesting keywords (e.g., login, verify, banking, secure, wallet, account).
+     * Security Flags: Evaluates HTTPS scheme validity, IP address hostname pattern matching, and known URL shortener service identification.
+
+3. Threat Intelligence Feed Optimization:
+   - Code Placement: /src/components/ThreatIntelView.tsx, /src/services/api.ts
+   - Working: Refined indicator aggregation rules and real-time query filtering across multi-source security feeds.
+
+
+B. SREEDEVI R P (Roll No: 59) - RESEARCH PAPER & WEB SCRAPING STUDY
+-------------------------------------------------------------------
+1. IEEE-Format Project Research Paper Drafting:
+   - Code Placement: /documents/project_report.txt, /documents/methodologies.txt
+   - Description: Authored the academic research paper detailing the design, architecture, and novel contributions of CyberShield AI.
+   - Core Sections Authored:
+     * Abstract & Introduction: Contextualizing modern phishing and evasive malware trends.
+     * Literature Survey & Gaps Resolution: Formulated a synthesis addressing limitations found in 12 core academic research papers (e.g., bridging offline accuracy vs. real-time alerts, providing explainable AI reasoning, human-in-the-loop validation).
+     * System Architecture: Documented the dual-engine scanning methodology and forensic telemetry.
+
+2. Web Scraping Feasibility Study for Threat Intelligence:
+   - Description: Conducted an in-depth feasibility and implementation study on automated web scraping frameworks (Cheerio, BeautifulSoup, Puppeteer) to dynamically ingest emerging phishing threats from live online feeds (PhishTank, OpenPhish, URLhaus).
+   - Findings & Analysis:
+     * Evaluated automated DOM parsing for extracting reported malicious URLs without API rate-limit bottlenecks.
+     * Analyzed countermeasures against anti-scraping techniques and IP rotation strategies.
+     * Designed an architectural pipeline for continuous scraping and feeding of newly discovered URLs into the Random Forest retraining pipeline.
+
+3. UI & Dashboard Visual Design Refinement:
+   - Code Placement: /src/components/PhishingView.tsx, /src/components/Dashboard.tsx
+   - Working: Designed intuitive threat severity cards, status badges, and visual telemetry charts for SOC operations.
+
+
+C. ABHI RAJ (Roll No: 66) - SYSTEM INTEGRATION, DUAL-ENGINE PIPELINE & STABILITY
+--------------------------------------------------------------------------------
+1. Random Forest Model Integration in Website:
+   - Code Placement: /server.ts, /src/services/api.ts, /src/components/PhishingView.tsx
+   - Working: Integrated the Random Forest classification logic and lexical extractor into the live Express backend API endpoint (/api/phishing/analyze).
+   - Two-Way Dual-Engine Architecture:
+     * Engine 1: PhishGuard 235k Deep Learning Model (trained on 235,000 verified URL samples).
+     * Engine 2: CyberShield Multi-Heuristic & Random Forest Lexical Analyzer.
+     * Unified Scoring: Generates composite risk scores (0-100), classification labels (SAFE, SUSPICIOUS, PHISHING), and statistical confidence ratings.
+
+2. Explainable AI Integration (Google Gemini API):
+   - Code Placement: /server.ts
+   - Working: Coupled backend scan results with the Gemini generative model to produce human-readable, plain-English security analysis explaining why a URL was flagged.
+
+3. Frontend Interactive Controls:
+   - Code Placement: /src/components/PhishingView.tsx
+   - Working: Added interactive engine switching tabs (Dual Engine vs. Engine 1 vs. Engine 2), live health ping monitoring (latency in ms), and crowdsourced threat verification.
+
+4. Database Stability & Lifecycle Hardening:
+   - Code Placement: /src/services/firebase.ts, /index.html
+   - Working:
+     * Neutralized browser iframe IndexedDB lifecycle errors by patching indexedDBLocalPersistence to eliminate "Database is closing/hidden" exceptions when switching tabs.
+     * Configured Firestore in-memory persistence and silenced internal SDK connectivity warnings to prevent false error notifications.
+     * Verified configuration integrity with firebase-applet-config.json.
+
+5. Alert Dispatching & Role-Based Access Control:
+   - Code Placement: /server.ts, /src/context/AuthContext.tsx
+   - Working: Hardened Slack/Discord webhook alert pipelines and enforced role-based privilege segregation between administrators and standard users.
+
+=====================================================================================
+2. SUMMARY OF RECENT PROJECT CODE ARTIFACTS
+=====================================================================================
+- ML Training Script:          /train_model.py
+- Feature Extractor:           /features.py
+- Backend API & Server:        /server.ts (/api/phishing/analyze, /api/phishing/engine-status)
+- Frontend Threat View:        /src/components/PhishingView.tsx
+- Research Documentation:      /documents/project_report.txt, /documents/methodologies.txt
+- Database & Error Handlers:   /src/services/firebase.ts, /index.html

@@ -1,11 +1,25 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'fs';
 import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      {
+        name: 'firebase-config-fallback',
+        enforce: 'pre',
+        resolveId(source) {
+          if (source.includes('firebase-applet-config.json') && !fs.existsSync(path.resolve(__dirname, 'firebase-applet-config.json'))) {
+            return path.resolve(__dirname, 'src/services/fallback-firebase-config.json');
+          }
+          return null;
+        }
+      },
+      react(),
+      tailwindcss()
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

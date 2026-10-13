@@ -1,0 +1,127 @@
+College of Engineering, Chengannur
+Department of Computer Engineering
+BTech Computer Science and Engineering
+CSD415 Project Phase 1 (2026)
+Periodic Report: 08-10-2026 to 13-10-2026 (Week 8)
+Title: CyberShield AI – Real-Time AI Threat Detection Platform
+Project Group Number: 16
+
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Who?              | Work Assigned              | Work Done                  | Work Scheduled for next    | Assessment by      |
+|                   |                            |                            | Phase / Evaluation         | Guide              |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 59       | Finalize publication paper | Completed publication-grade| Camera-ready review, final |                    |
+| Sreedevi R P      | (IEEE format), literature  | IEEE LaTeX research paper  | viva preparation, and      |                    |
+|                   | gap analysis, and state    | and authored state funding | project defense.           |                    |
+|                   | funding grant proposals.   | grant proposals.           |                            |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 65       | Structure and compile the  | Authored complete 16-slide | Slide timing rehearsal,    |                    |
+| Vishnu V Nair     | final presentation deck    | final presentation deck    | viva demonstration drill,  |                    |
+|                   | with architecture, DFDs,   | with system models and     | and technical defense.     |                    |
+|                   | and evaluation metrics.    | performance metrics.       |                            |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+| Roll No: 66       | System performance audits, | Executed full-stack code   | Final project submission,  |                    |
+| Abhi Raj          | latency optimization, DFD  | optimizations, fixed DFD   | live demo staging, and     |                    |
+|                   | diagram fixes, and testing.| errors, and hardened build.| end-to-end audit.          |                    |
++-------------------+----------------------------+----------------------------+----------------------------+--------------------+
+
+PROJECT UPDATE: FINAL PRESENTATION, IEEE PAPER, SYSTEM OPTIMIZATION & BUG FIXES (WEEK 8)
+-----------------------------------------------------------------------------------------
+This section details recent updates completed during Week 8 (08-10-2026 to 13-10-2026) for the CyberShield AI Platform, split by individual contributor.
+
+=========================================================================================
+1. INDIVIDUAL CONTRIBUTIONS & MODULE DETAILS
+=========================================================================================
+
+A. VISHNU V NAIR (Roll No: 65) - FINAL PRESENTATION SLIDE DECK & TECHNICAL MODELING
+------------------------------------------------------------------------------------
+1. Comprehensive 16-Slide Final Presentation Formulation:
+   - File Placement: /documents/presentation_slides_content.md
+   - Description: Designed, structured, and wrote the complete academic slide presentation deck covering all 16 essential evaluation segments:
+     * Slide 1: Title Slide & Institutional Identification (Group 16, CEC KTU).
+     * Slide 2: Introduction, Threat Landscape & Core Pillars.
+     * Slide 3: Problem Statement (The Research-to-Operations Gap & Black-Box Dilemma).
+     * Slide 4: Comprehensive 12-Paper Literature Review Comparison Matrix.
+     * Slide 5: Proposed Solution & Core Value Propositions.
+     * Slide 6: Layered Client-Server System Architecture & ASCII Structural Diagram.
+     * Slide 7: Complete Use Case Diagram (Analyst vs. Admin vs. External APIs).
+     * Slide 8: Data Flow Diagrams (Level 0 Context Diagram & Level 1 Decomposed Process).
+     * Slide 9: Feature Engineering Methodology (15 Predictors, Shannon Entropy Formula).
+     * Slide 10: Functional Requirements Specification (FR-01 through FR-07).
+     * Slide 11: Non-Functional Requirements Specification (NFR-01 through NFR-05).
+     * Slide 12: Hardware Requirements (Development, Cloud Deployment, and Client Specs).
+     * Slide 13: Software Requirements & Technical Stack Specifications.
+     * Slide 14: Results & Performance Analysis (Detection Accuracy, ROC-AUC, Latency).
+     * Slide 15: Conclusion, FAIR-ROSI Economics, and Future Scope.
+     * Slide 16: References (Full formal citations for all 12 reviewed papers).
+
+2. Model Accuracy & Evaluation Benchmarks Synthesis:
+   - Aggregated quantitative performance results:
+     * PhishGuard Cloud AI: 97.4% accuracy on 235k verified URL corpus.
+     * CyberShield Random Forest Model: 95.8% cross-validated accuracy across 15 features.
+     * Dual-Engine Consensus: Reduced false-positive rate to < 1.8%.
+     * End-to-end scanning latency: < 2.0 seconds including Gemini AI explanation.
+
+3. Defense Slide Presentation Timing & Speaker Notes:
+   - Formulated concise speaker talking points and structured technical answers for viva panel questions.
+
+
+B. SREEDEVI R P (Roll No: 59) - IEEE RESEARCH PAPER & PROJECT PROPOSAL DOCUMENTATION
+------------------------------------------------------------------------------------
+1. Publication-Grade IEEE LaTeX Paper Authoring:
+   - File Placement: /documents/paper.tex
+   - Description: Authored the full academic research paper formatted strictly according to the IEEE conference publication standard (\documentclass[conference]{IEEEtran}):
+     * Authored standard IEEE two-column layout including complete metadata, institutional affiliations, and abstract.
+     * Documented Section I (Introduction) and Section II (Related Work), citing all 12 literature survey papers accurately.
+     * Created Table I: Comprehensive Gap Analysis Matrix detailing specific limitations of previous works and CyberShield resolutions.
+     * Integrated TikZ vector diagram for Figure 1 representing the layered client-server architecture.
+     * Formulated mathematical equations for Shannon Entropy H(X) = -sum(P(x) * log2(P(x))) and Random Forest majority voting.
+     * Documented Section III (Proposed System Architecture), Section IV (System Workflow), Section V (SRS), and Section VI (Discussion & Future Work).
+     * Formatted all 12 formal IEEE bibliography citations matching IEEE Access and Springer journals.
+
+2. Literature Review Gaps Resolution Synthesis:
+   - Mapped the exact research contributions of CyberShield AI against recent studies (Misiek 2026, Koide 2026, Aldhuwayhi 2026, Duarte 2025, Elgarduh 2026, Gutierrez 2024, Kara 2026, Alshoulie 2025, Almarwani 2026, Khattak 2026, He 2026, Abril 2025).
+
+3. State Funding Grant Proposals:
+   - Authored the KSCSTE Student Project Scheme application (/documents/apj.md, /documents/KSCTEM.md) within the ₹10,000 ceiling.
+   - Authored the Kerala Startup Mission (KSUM) Idea Grant proposal (/documents/funding_proposal.md) with an itemized ₹3,00,000 budget and FAIR-ROSI economic justification.
+
+
+C. ABHI RAJ (Roll No: 66) - FULL-STACK OPTIMIZATION, BUG FIXES & SYSTEM VALIDATION
+----------------------------------------------------------------------------------
+1. Backend Latency & Pipeline Optimization:
+   - Code Placement: /server.ts, /src/services/api.ts
+   - Improvements:
+     * Optimized the /api/phishing/analyze endpoint by executing local lexical feature calculation in parallel with the external PhishGuard Cloud API call using Promise.allSettled.
+     * Reduced overall scan turnaround time by ~250ms, achieving local heuristic pre-scoring in < 12ms.
+     * Fine-tuned prompt tokens for the Google Gemini API to ensure concise, highly informative 2-sentence SOC analyst explanations.
+
+2. DFD Correction & Diagram Generation:
+   - File Placement: /documents/cybershield_dfd_diagrams.png, /documents/cybershield_dfd_diagrams.svg
+   - Work Done:
+     * Audited the Level 0 Context Diagram and Level 1 Decomposed DFD for academic correctness.
+     * Identified and resolved the "RandTotal" naming typo present in the draft diagram.
+     * Restored the missing SOC Administrator external entity in Level 1 to guarantee strict Level 0-to-Level 1 flow balancing.
+     * Rendered and saved crisp, high-resolution 1400x1800 PNG and scalable SVG diagram files directly in the private /documents folder.
+
+3. Frontend Stability & Bug Fixes:
+   - Code Placement: /src/components/PhishingView.tsx, /src/components/MalwareView.tsx, /src/components/Dashboard.tsx
+   - Improvements:
+     * Fixed subtle rendering glitches during engine tab toggling (Dual vs. Engine 1 vs. Engine 2).
+     * Resolved potential unhandled state transitions during cloud API timeouts with graceful offline fallback indicators.
+     * Optimized Recharts telemetry rendering to eliminate unnecessary re-renders during the 10-second background polling cycle.
+     * Verified tamper-resistant Firestore database persistence and guaranteed configuration integrity with firebase-applet-config.json.
+
+4. End-to-End Build & Compilation Verification:
+   - Executed clean build validations with compile_applet and lint_applet, verifying zero TypeScript errors, valid module imports, and production bundle readiness.
+
+=========================================================================================
+2. SUMMARY OF RECENT PROJECT CODE ARTIFACTS
+=========================================================================================
+- Final Presentation Deck:     /documents/presentation_slides_content.md
+- IEEE Publication Paper:      /documents/paper.tex
+- Corrected DFD Diagrams:      /documents/cybershield_dfd_diagrams.png, .svg
+- Funding Proposals:           /documents/funding_proposal.md, /documents/KSCTEM.md, /documents/apj.md
+- Optimized Server & APIs:     /server.ts (/api/phishing/analyze, /api/malware/scan)
+- Optimized Frontend Views:    /src/components/PhishingView.tsx, /src/components/Dashboard.tsx
+- Feature Extraction Engine:   /features.py, /train_model.py

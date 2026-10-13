@@ -83,10 +83,18 @@ export default function PhishingView() {
     try {
       const data = await analyzePhishingUrl(targetUrl.trim());
       setCurrentResult(data);
-      const updatedHistory = await fetchPhishingHistory();
-      setHistory(updatedHistory);
+      try {
+        const updatedHistory = await fetchPhishingHistory();
+        setHistory(updatedHistory);
+      } catch (histErr) {
+        console.warn("History fetch warning:", histErr);
+      }
     } catch (err: any) {
-      setError(err.message || "Analysis failed");
+      if (err.name === 'AbortError' || err.message?.toLowerCase().includes('abort')) {
+        setError("Network connection took longer than expected. Please retry your scan.");
+      } else {
+        setError(err.message || "Analysis failed");
+      }
     } finally {
       setLoading(false);
     }

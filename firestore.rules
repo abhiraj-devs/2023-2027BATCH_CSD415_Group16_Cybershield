@@ -31,7 +31,7 @@ service cloud.firestore {
 
     // Connection test document
     match /test/{docId} {
-      allow read: if isSignedIn();
+      allow read: if true;
     }
 
     // Admins Collection

@@ -1,0 +1,224 @@
+====================================================================================================
+CYBERSHIELD AI - COMPLETE MODULES DIRECTORY & ARCHITECTURAL SUMMARY
+PROJECT: CyberShield AI: Real-Time Cybersecurity Monitoring Dashboard with AI-Assisted Threat Analysis
+LOCATION: /documents/study/modules_overview.txt
+====================================================================================================
+
+This document provides a consolidated, all-in-one index of every architectural module in the
+CyberShield AI platform. For each module, it outlines the core purpose, technical workflow,
+algorithms, code placements, backend REST endpoints, and key contributors.
+
+====================================================================================================
+MASTER LIST OF MODULES
+====================================================================================================
+1. UNIFIED SOC COMMAND DASHBOARD
+2. TWO-WAY DUAL-ENGINE PHISHING DETECTION SYSTEM
+3. EXPLAINABLE AI (XAI) THREAT REASONING ENGINE (GOOGLE GEMINI API)
+4. IN-BROWSER MALWARE FORENSICS ENGINE (ZERO-UPLOAD CLIENT-SIDE HASHING)
+5. REAL-TIME NETWORK TELEMETRY & EGRESS ANOMALY DETECTOR
+6. GLOBAL THREAT INTELLIGENCE FEED AGGREGATOR
+7. AUTOMATED SECURITY ALERTING & MULTI-CHANNEL WEBHOOK DISPATCHER
+8. AUTHENTICATION & ROLE-BASED ACCESS CONTROL (RBAC)
+9. CROWDSOURCED THREAT TRIAGE & WORKFORCE SECURITY TRAINING SIMULATOR
+
+====================================================================================================
+DETAILED BRIEF FOR EACH MODULE
+====================================================================================================
+
+----------------------------------------------------------------------------------------------------
+1. UNIFIED SOC COMMAND DASHBOARD
+----------------------------------------------------------------------------------------------------
+- Module Lead: Vishnu V Nair (Roll No: 65)
+- Code Placement: /src/components/Dashboard.tsx, /src/services/api.ts
+- Backend Endpoint: GET /api/dashboard/stats
+
+- Core Purpose:
+  Serves as the centralized, dark-mode-optimized mission control center for Security Operations Center
+  (SOC) operators, synthesizing telemetry and active threats from all detection sub-systems into a single
+  ergonomic interface to eliminate tool fragmentation and alert fatigue.
+
+- How It Works:
+  The dashboard polls the backend every 10 seconds to compute dynamic security key performance indicators
+  (KPIs). It calculates a real-time "System Posture Index" (0–100%) that weights active critical alerts,
+  high-severity incidents, and network anomalies to provide instant situational awareness.
+
+- Key Capabilities:
+  * High-Density KPI Metric Cards: Total Threats Blocked, Active Anomalies, Mean Time to Detect (MTTD),
+    and Overall Security Posture score.
+  * Real-Time Telemetry Visualizations: Interactive AreaCharts and LineCharts (built with Recharts) plotting
+    24-hour threat distributions across Phishing, Malware, and Network Events.
+  * Live Threat Activity Ticker: Displays real-time streaming notifications of recently scanned URLs and files.
+  * Quick-Scan Launchpads: Enables instant submission of candidate links or file hashes directly from the cockpit.
+
+
+----------------------------------------------------------------------------------------------------
+2. TWO-WAY DUAL-ENGINE PHISHING DETECTION SYSTEM
+----------------------------------------------------------------------------------------------------
+- Module Lead: Vishnu V Nair (Roll No: 65) & Abhi Raj (Roll No: 66)
+- Code Placement: /server.ts (lines 901-1056), /features.py, /train_model.py, /src/components/PhishingView.tsx
+- Backend Endpoint: POST /api/phishing/analyze, GET /api/phishing/engine-status
+
+- Core Purpose:
+  Eliminates single-point-of-failure vulnerabilities in traditional phishing filters by evaluating candidate
+  URLs simultaneously across two independent machine learning models, cross-verifying outputs to ensure high
+  detection accuracy (>96%) and a minimal false-positive rate (<1.8%).
+
+- How It Works:
+  1. Engine 1 (PhishGuard Cloud AI): Calls a cloud-hosted deep neural model on Render trained on 235,000 verified
+     URLs to extract cloud feature vectors and threat likelihood.
+  2. Engine 2 (CyberShield Lexical & Random Forest): Computes 15 structural and lexical features in <12 ms
+     (including URL length, subdomain count, keyword tokens, IP detection, and Shannon Entropy).
+  3. Consensus Decision Engine: Evaluates outputs into three deterministic states:
+     - FULL_AGREEMENT (Malicious): Both engines flag threat -> CONFIRMED PHISHING (Risk Score >= 85).
+     - FULL_AGREEMENT (Clean): Both engines confirm clean -> VERIFIED SAFE (Risk Score <= 20).
+     - DISCORDANT (Disagreement): Split verdict -> SUSPICIOUS (Risk Score 45–75); elevates incident for manual SOC triage.
+
+- Key Algorithms & Math:
+  * Shannon Entropy: H(X) = -sum(P(x) * log2(P(x))) evaluates character randomization to detect
+    Algorithmically Generated Domains (DGAs) and URL obfuscation.
+  * Random Forest Ensemble: 100 decision trees trained with Gini impurity criterion on balanced URL corpora.
+
+
+----------------------------------------------------------------------------------------------------
+3. EXPLAINABLE AI (XAI) THREAT REASONING ENGINE (GOOGLE GEMINI API)
+----------------------------------------------------------------------------------------------------
+- Module Lead: Abhi Raj (Roll No: 66)
+- Code Placement: /server.ts (lines 1005-1021)
+- Technology: Google Gemini Generative AI SDK (@google/genai, model: gemini-3.6-flash)
+
+- Core Purpose:
+  Solves the "black-box" dilemma of machine learning in cybersecurity by transforming opaque statistical probability
+  scores (e.g., "0.91 phishing") into plain-English, actionable threat explanations for junior SOC analysts.
+
+- How It Works:
+  During the consensus evaluation in /api/phishing/analyze, the server constructs a system prompt containing the
+  raw lexical feature metrics (subdomain depth, Shannon entropy, IP address host, credential keywords) and dual-engine
+  probability scores. Gemini synthesizes a concise, professional 2-sentence executive summary highlighting the exact
+  mechanisms that triggered the classification and recommending perimeter defense actions.
+
+
+----------------------------------------------------------------------------------------------------
+4. IN-BROWSER MALWARE FORENSICS ENGINE (ZERO-UPLOAD CLIENT-SIDE HASHING)
+----------------------------------------------------------------------------------------------------
+- Module Lead: Abhi Raj (Roll No: 66)
+- Code Placement: /src/components/MalwareView.tsx, /server.ts (lines 1128-1280)
+- Backend Endpoint: POST /api/malware/scan
+
+- Core Purpose:
+  Provides instant static forensic inspection of suspicious binary payloads while preserving complete enterprise
+  data confidentiality by avoiding file uploads to external cloud servers.
+
+- How It Works:
+  1. Client-Side Cryptographic Hashing: The browser's native Web Cryptography API (window.crypto.subtle)
+     computes the 256-bit SHA-256 hash in <35 ms directly in browser memory.
+  2. Multi-Engine Reputation Correlation: The hash is queried against a correlation structure representing 72+
+     global Antivirus vendors (e.g., CrowdStrike, Microsoft Defender, Kaspersky, SentinelOne) to produce a detection ratio (e.g., 58/72).
+  3. Binary Static Analysis (server.ts):
+     - Calculates byte-level Shannon Entropy across 256 byte frequencies (entropy > 7.8 flags runtime packers/cryptors).
+     - Dissects Portable Executable (PE) headers: verifies DOS magic ("MZ"), PE signature, machine architecture
+       (32-bit vs 64-bit), section table (.text, .data, .rsrc), and checks Import Address Tables (IAT) for evasion APIs.
+
+
+----------------------------------------------------------------------------------------------------
+5. REAL-TIME NETWORK TELEMETRY & EGRESS ANOMALY DETECTOR
+----------------------------------------------------------------------------------------------------
+- Module Lead: Abhi Raj (Roll No: 66)
+- Code Placement: /src/components/NetworkView.tsx, /server.ts (lines 1350-1480)
+- Backend Endpoints: GET /api/network/telemetry, GET /api/network/events
+
+- Core Purpose:
+  Monitors internal perimeter packet flows in real time, tracking throughput, protocol distributions, and automatically
+  intercepting outbound data exfiltration bursts and unauthorized proxy connections.
+
+- How It Works:
+  Maintains a 10-second non-blocking auto-refresh cycle that collects network telemetry:
+  * Ingress & Egress Bandwidth (Mbps) and Packets Per Second (PPS).
+  * Protocol Distribution: TCP (web/SSH), UDP (DNS/VPN), and ICMP diagnostics.
+  * Anomaly Detection Logic:
+    - Egress Spike Detection: Compares outbound traffic against a 15-minute rolling average. Outbound bandwidth
+      surpassing 85 Mbps or 2.5x the rolling mean triggers an ANOMALOUS_EGRESS alert.
+    - Tor Exit Node & Malicious Port Monitoring: Inspects destination IPs and flags connections to Tor exit nodes
+      or suspicious ports (4444 Metasploit listener, 6667 IRC botnet, 8545 cryptomining RPC).
+
+
+----------------------------------------------------------------------------------------------------
+6. GLOBAL THREAT INTELLIGENCE FEED AGGREGATOR
+----------------------------------------------------------------------------------------------------
+- Module Lead: Sreedevi R P (Roll No: 59)
+- Code Placement: /src/components/ThreatIntelView.tsx, /server.ts (lines 1500-1650)
+- Backend Endpoints: GET /api/threat-intel, POST /api/threat-intel/report, GET /api/threat-intel/stats
+
+- Core Purpose:
+  Ingests, normalizes, and visualizes high-fidelity external threat data streams, allowing analysts to search,
+  cross-reference, and export active Indicators of Compromise (IOCs) and Common Vulnerabilities and Exposures (CVEs).
+
+- How It Works:
+  Simulates and aggregates intelligence streams from top threat repositories:
+  * MISP (Malware Information Sharing Platform), URLhaus, Shodan, AbuseIPDB, and CISA Known Exploited Vulnerabilities (KEV).
+  * Normalizes indicators into a standardized taxonomy: IP, DOMAIN, URL, HASH, and CVE.
+  * Sub-Second Client-Side Search: Implements real-time tokenized filtering via React useMemo across indicators,
+    APT tags (e.g., LockBit, CobaltStrike), and CVE vulnerability summaries.
+  * Analyst Contribution: Authenticated operators can report zero-day threat indicators directly to the shared store.
+
+
+----------------------------------------------------------------------------------------------------
+7. AUTOMATED SECURITY ALERTING & MULTI-CHANNEL WEBHOOK DISPATCHER
+----------------------------------------------------------------------------------------------------
+- Module Lead: Sreedevi R P (Roll No: 59)
+- Code Placement: /server.ts (lines 680-780), /src/components/AlertsView.tsx, /src/components/SettingsView.tsx
+- Backend Endpoints: GET /api/alerts, POST /api/alerts/acknowledge/:id, DELETE /api/alerts/:id, POST /api/settings/webhooks/test
+
+- Core Purpose:
+  Drives rapid incident response by categorizing detected security events into strict severity tiers and broadcasting
+  instant, formatted alerts to team collaboration channels (Discord and Slack) with zero human delay (<400 ms).
+
+- How It Works:
+  1. Severity Classification: Ranks incidents as CRITICAL, HIGH, MEDIUM, or LOW based on model consensus and threat severity.
+  2. 60-Second Deduplication: Suppresses identical alert triggers on the same target within a 60-second window to prevent alert fatigue.
+  3. Multi-Channel Dispatch:
+     - Discord Webhook: Sends structured Rich Embeds with color-coded severity borders (Crimson Red for Critical, Amber for High).
+     - Slack Webhook: Formats incident notifications using Slack Block Kit JSON specifications with danger indicators.
+  4. Analyst Triage: Operators can acknowledge, quarantine, or dismiss alerts, writing all actions to immutable audit logs.
+
+
+----------------------------------------------------------------------------------------------------
+8. AUTHENTICATION & ROLE-BASED ACCESS CONTROL (RBAC)
+----------------------------------------------------------------------------------------------------
+- Module Lead: Abhi Raj (Roll No: 66)
+- Code Placement: /src/context/AuthContext.tsx, /src/services/firebase.ts, /index.html
+- Backend Endpoints: POST /api/auth/login, POST /api/auth/verify-otp, GET /api/auth/me
+
+- Core Purpose:
+  Secures the command center through multi-factor authentication and enforces strict Role-Based Access Control,
+  differentiating standard SOC analysts from administrative personnel while ensuring crash-free database stability.
+
+- How It Works:
+  * Two-Factor Verification: Employs email verification combined with a 6-digit Time-Based One-Time Password (OTP).
+  * Role Separation:
+    - ROLE_ANALYST: Can scan URLs, analyze files, monitor network flows, review threat intel, and acknowledge alerts.
+    - ROLE_ADMIN: Holds privileged rights to configure Discord/Slack webhooks, quarantine malicious domains,
+      manage user permissions, and export or purge audit logs.
+  * Storage Resilience Patch: Solved browser iframe IndexedDB lifecycle crashes ("Database is closing") by implementing
+    in-memory session fallbacks (browserSessionPersistence) and exponential retry logic in /src/services/firebase.ts.
+
+
+----------------------------------------------------------------------------------------------------
+9. CROWDSOURCED THREAT TRIAGE & WORKFORCE SECURITY TRAINING SIMULATOR
+----------------------------------------------------------------------------------------------------
+- Module Lead: Vishnu V Nair (Roll No: 65)
+- Code Placement: /src/components/TrainingView.tsx, /src/components/Dashboard.tsx
+- Backend Endpoints: POST /api/phishing/verify-threat, GET /api/training/modules
+
+- Core Purpose:
+  Combines Human-in-the-Loop (HITL) crowdsourced threat verification with interactive workforce cybersecurity training
+  to reduce organizational vulnerability caused by human error.
+
+- How It Works:
+  * Crowdsourced Verification: Enables analysts to review community-reported URLs and mark them as "Verified Threat"
+    (updating blacklists and model training sets) or "Discard False Positive".
+  * Interactive Phishing Training: Simulates real-world spear-phishing campaigns, credential harvesting forms, and
+    CEO fraud emails, providing interactive feedback and scoring user awareness to measure organizational resilience.
+
+====================================================================================================
+END OF FILE: /documents/study/modules_overview.txt
+====================================================================================================

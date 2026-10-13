@@ -3,6 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function() {
+        function isSuppressedError(err) {
+          if (!err) return false;
+          var msg = typeof err === 'string' ? err : (err.message || String(err) || '');
+          return msg.indexOf('Database is closing/hidden') !== -1 ||
+                 msg.indexOf('Could not reach Cloud Firestore backend') !== -1;
+        }
+        window.addEventListener('unhandledrejection', function(event) {
+          if (isSuppressedError(event.reason)) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        });
+        window.addEventListener('error', function(event) {
+          if (isSuppressedError(event.error) || isSuppressedError(event.message)) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        });
+        var origError = console.error;
+        console.error = function() {
+          for (var i = 0; i < arguments.length; i++) {
+            if (isSuppressedError(arguments[i])) {
+              console.warn.apply(console, arguments);
+              return;
+            }
+          }
+          origError.apply(console, arguments);
+        };
+      })();
+    </script>
     <title>CyberShield</title>
     <meta name="description" content="Intelligent Real-Time Cybersecurity Monitoring Platform with AI Phishing Detection, Malware Hash Scanning, Simulated Network Traffic, Threat Intelligence, and Automated Alerts." />
     

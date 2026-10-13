@@ -1,0 +1,244 @@
+====================================================================================================
+CYBERSHIELD AI - COMPREHENSIVE STUDY GUIDE & ARCHITECTURAL MANUAL
+STUDY GUIDE: SREEDEVI R P (ROLL NO: 59)
+MODULES: THREAT INTELLIGENCE FEED AGGREGATOR & AUTOMATED SECURITY ALERTING ENGINE
+====================================================================================================
+
+This document serves as a complete, in-depth architectural guide for understanding, explaining, and
+defending the Threat Intelligence Aggregator and Automated Security Alerting components of CyberShield AI
+during academic reviews, viva evaluations, and technical presentations.
+
+----------------------------------------------------------------------------------------------------
+TABLE OF CONTENTS:
+1. Architectural Overview & Responsibilities
+2. Module 1: Threat Intelligence Feed Aggregator (Working & Implementation)
+   2.1 Feed Sources & Ingestion Mechanics
+   2.2 Data Structure of Threat Indicators (IOCs & CVEs)
+   2.3 Backend Implementation & REST Endpoints (server.ts)
+   2.4 Frontend Ingestion, Search, and Live Filtering (ThreatIntelView.tsx)
+   2.5 Feasibility Study for Autonomous Web Scraping Daemons
+3. Module 2: Automated Security Alerting Engine (Working & Implementation)
+   3.1 Incident Lifecycle & Severity Classification Hierarchy
+   3.2 Alert Generation & Deduplication Logic
+   3.3 Multi-Channel Webhook Architecture (Discord & Slack)
+   3.4 Payload Formatting, Color Coding, and Dispatch Pipelines
+   3.5 Analyst Triage, Acknowledgment, and Auditing
+4. Key Algorithms, Mathematical Concepts & Formulations
+5. Viva & Exam Defense Q&A Guide
+----------------------------------------------------------------------------------------------------
+
+
+====================================================================================================
+1. ARCHITECTURAL OVERVIEW & RESPONSIBILITIES
+====================================================================================================
+
+In a modern Security Operations Center (SOC), monitoring tools are only as effective as the real-time
+intelligence they consume and the speed at which actionable alerts are dispatched to incident responders.
+The Threat Intelligence and Security Alerting modules form the sensory and dispatch layers of CyberShield AI:
+
+1. Sensory Layer (Threat Intelligence):
+   - Ingests, normalizes, and categorizes high-fidelity Indicators of Compromise (IOCs) and Common
+     Vulnerabilities and Exposures (CVEs) from global threat feeds.
+   - Enables sub-second client-side searching, filtering by attack vector (Phishing, Malware, C2, DGA),
+     and provides direct intelligence correlation for incoming URLs and hashes.
+
+2. Dispatch Layer (Automated Security Alerts):
+   - Receives threat detections dispatched by the Dual-Engine Phishing Scanner, Malware Forensics, and
+     Network Telemetry modules.
+   - Evaluates incident severity (CRITICAL, HIGH, MEDIUM, LOW), deduplicates incoming events, and pushes
+     instant rich notifications to enterprise communication channels (Discord and Slack webhooks) in <400 ms.
+
+
+====================================================================================================
+2. MODULE 1: THREAT INTELLIGENCE FEED AGGREGATOR
+====================================================================================================
+
+2.1 Feed Sources & Ingestion Mechanics:
+The Threat Intelligence engine simulates and structures continuous data streams from premier global
+cybersecurity data repositories:
+- MISP (Malware Information Sharing Platform & Threat Sharing): Community-driven IOC sharing.
+- URLhaus & OpenPhish: Zero-day malicious URL feeds and active command-and-control drop sites.
+- Shodan & AbuseIPDB: Blacklisted IP addresses associated with botnets, scanning sweeps, and brute-force actors.
+- CISA Known Exploited Vulnerabilities (KEV) Catalog & National Vulnerability Database (NVD): High-severity
+  CVEs actively weaponized by advanced persistent threat (APT) groups.
+
+2.2 Data Structure of Threat Indicators (IOCs & CVEs):
+Each threat intelligence record is normalized into a strict TypeScript data schema (defined in /src/types.ts):
+```typescript
+export interface ThreatIntelItem {
+  id: string;                  // Unique identifier (e.g., "intel_1712034901")
+  indicator: string;           // The observable IOC (URL, IP, Domain, or SHA-256 hash)
+  type: 'IP' | 'DOMAIN' | 'URL' | 'HASH' | 'CVE'; // Categorical taxonomy
+  threatType: string;          // Attack profile (e.g., "Ransomware C2", "Banking Phishing", "RCE")
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  confidence: number;          // Statistical confidence percentage (0 to 100)
+  source: string;              // Feed origin (e.g., "MISP Feed", "URLhaus", "CISA KEV")
+  description: string;         // Plain-English tactical summary
+  reportedAt: string;          // ISO timestamp
+  tags: string[];              // Search keywords (e.g., ["APT29", "CobaltStrike", "LockBit"])
+}
+```
+
+2.3 Backend Implementation & REST Endpoints (server.ts):
+The backend Express API provides endpoints for retrieving intelligence items, aggregating stats, and
+allowing authenticated analysts to submit new crowdsourced indicators:
+
+- GET /api/threat-intel
+  * Returns the full array of normalized threat intelligence items from the in-memory/Firestore store.
+  * Supports query parameters for type, severity, and text search queries.
+  * Responds with status code 200 and standard envelope: { success: true, data: ThreatIntelItem[] }.
+
+- POST /api/threat-intel/report
+  * Allows authenticated analysts to submit a newly identified threat observable.
+  * Validates indicator syntax (regex validation for IPs, domain syntax, and 64-character SHA-256 hashes).
+  * Automatically prepends the new threat indicator into the operational repository.
+  * Triggers a corresponding HIGH-severity alert in the Alerting engine.
+
+- GET /api/threat-intel/stats
+  * Computes aggregated distribution metrics (count of Critical CVEs, Active Phishing Domains, C2 IPs).
+  * Enables the dashboard overview cards to display live metric counters.
+
+2.4 Frontend Ingestion, Search, and Live Filtering (ThreatIntelView.tsx):
+- Client-Side Real-Time Filter: Implements instantaneous filtering across indicator strings, source tags,
+  and descriptions using React's useMemo hook, ensuring zero latency even with hundreds of items.
+- Tab Taxonomy: Allows toggling between All Indicators, Phishing Links, Malware Hashes, C2 IP Addresses,
+  and CVE Advisories.
+- Indicator Export & Clipboard: Provides one-click copying of SHA-256 hashes and IOCs for rapid firewall
+  blacklisting or import into external SIEM tables.
+
+2.5 Feasibility Study for Autonomous Web Scraping Daemons:
+In the project literature review and feasibility study, Sreedevi evaluated the integration of autonomous
+web scrapers (using Cheerio and headless Puppeteer) to continuously harvest threat intelligence:
+- Motivation: Commercial threat intelligence APIs enforce stringent rate limits on free tiers (e.g., 4 requests/min).
+  Autonomous scrapers parse publicly hosted open security bulletins, paste sites, and threat feeds directly.
+- Anti-Scraping Mitigations: Designed an architectural pipeline featuring user-agent header rotation, exponential
+  backoff delays, and sanitization regexes to strip benign domains before ingesting parsed indicators into the
+  local Random Forest training corpus.
+
+
+====================================================================================================
+3. MODULE 2: AUTOMATED SECURITY ALERTING ENGINE
+====================================================================================================
+
+3.1 Incident Lifecycle & Severity Classification Hierarchy:
+When a security anomaly is identified anywhere in the platform, it enters the Incident Alert Lifecycle:
+
+   [ Threat Triggered ] 
+           │
+           ▼
+   [ Severity Categorization ] ───► CRITICAL / HIGH / MEDIUM / LOW
+           │
+           ▼
+   [ Deduplication Check ] ───────► Suppress identical triggers within 60 seconds
+           │
+           ▼
+   [ Local Alert Dispatch ] ──────► Append to in-memory/Firestore alert queue
+           │
+           ▼
+   [ Webhook Gateway ] ──────────► Formats payload & pushes to Discord and Slack in parallel
+           │
+           ▼
+   [ Analyst Triage ] ────────────► SOC analyst reviews, acknowledges, or quarantines threat
+
+Severity Hierarchy Rules:
+- CRITICAL: Both PhishGuard and CyberShield engines agree on malicious phishing (Combined score >= 75),
+  or an uploaded binary matches known ransomware/trojan signatures (VirusTotal detection > 10 engines).
+- HIGH: Discordant phishing verdict (one engine flags high threat while other is uncertain), anomalous
+  egress traffic spike (> 85 Mbps), or connection to a confirmed Tor exit node.
+- MEDIUM: Suspicious URL containing multiple lexical anomalies, high Shannon entropy string (> 4.5),
+  or new high-severity CVE published in threat feeds.
+- LOW: Routine administrative events, minor bandwidth fluctuations, or successful analyst logins.
+
+3.2 Alert Generation & Deduplication Logic (server.ts):
+```typescript
+interface SecurityAlert {
+  id: string;                  // e.g., "alt_1712034901"
+  eventType: string;           // "PHISHING_DETECTED" | "MALWARE_DETECTED" | "ANOMALOUS_EGRESS"
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  title: string;               // Headline of incident
+  message: string;             // Detailed technical summary
+  source: string;              // Originating engine
+  timestamp: string;           // ISO timestamp
+  acknowledged: boolean;       // Triage state
+}
+```
+Deduplication: Before creating a new alert, the backend scans db.alerts to verify whether an alert with the
+identical title and target indicator was generated within the last 60 seconds. This eliminates alert fatigue
+caused by rapid polling or duplicate submissions.
+
+3.3 Multi-Channel Webhook Architecture (Discord & Slack):
+CyberShield AI bridges the gap between detection and operational response by broadcasting alerts directly
+to the communication tools SOC teams use daily.
+- Configured in the Settings tab (SettingsView.tsx) and securely stored in backend settings.
+- Backend dispatch function: dispatchWebhookNotification(alert: SecurityAlert, webhookUrls: WebhookConfig).
+- Asynchronous Non-Blocking Execution: Webhook HTTP POST calls are fired asynchronously using Axios with a
+  tight 4-second timeout, ensuring the user interface and scanning engine never wait on external chat APIs.
+
+3.4 Payload Formatting, Color Coding, and Dispatch Pipelines:
+- Discord Webhooks (Rich Embed Format):
+  * Discord webhook endpoints accept structured JSON embeds with custom border colors:
+    - CRITICAL: Crimson Red (decimal 14757192 / hex #e11d48)
+    - HIGH: Amber Orange (decimal 16348438 / hex #f97316)
+    - MEDIUM: Yellow (decimal 15456282 / hex #ebb31a)
+    - LOW: Emerald Green (decimal 1445763 / hex #161083)
+  * Includes embed fields: Severity, Source Engine, Observed Target, and Gemini AI Explanation summary.
+- Slack Webhooks (Block Kit Format):
+  * Formatted using Slack's Block Kit specifications: section headers, bold markdown fields, and an
+    attached danger/warning color bar.
+
+3.5 Analyst Triage, Acknowledgment, and Auditing:
+- Acknowledge Endpoint: POST /api/alerts/acknowledge/:id marks acknowledged: true, visually dimming the alert
+  on the dashboard and stopping repeating notification banners.
+- Clear/Dismiss: DELETE /api/alerts/:id removes an acknowledged alert from the active queue.
+- Audit Logging: Every triage decision (acknowledged, discarded, quarantined) is written to the immutable audit
+  log collection in Firebase Firestore with the analyst's timestamp and email identifier.
+
+
+====================================================================================================
+4. KEY ALGORITHMS, MATHEMATICAL CONCEPTS & FORMULATIONS
+====================================================================================================
+
+1. Alert Priority Score (APS) Formulation:
+   To order alerts dynamically on the dashboard, an Alert Priority Score is calculated:
+   APS = (Severity_Weight * 0.5) + (Confidence_Score * 0.3) + (Recency_Factor * 0.2)
+   Where:
+   - Severity_Weight: CRITICAL = 100, HIGH = 75, MEDIUM = 50, LOW = 25
+   - Confidence_Score: 0 to 100 derived from the detection model
+   - Recency_Factor: Exponential decay based on time elapsed since detection (100 * e^(-0.05 * minutes))
+
+2. Client-Side Sub-Second Search Complexity:
+   - Filtering across 500+ threat intelligence items is performed in O(n * m) time where n is the number
+     of items and m is the query length, optimized with pre-tokenized lowercase string lookups.
+
+
+====================================================================================================
+5. VIVA & EXAM DEFENSE Q&A GUIDE (FOR SREEDEVI R P)
+====================================================================================================
+
+Q1: Why is Threat Intelligence integrated directly into the dashboard instead of using a standalone portal?
+A: In standard SOC operations, analysts experience "swivel-chair fatigue" having to cross-reference URLs
+   and file hashes across 4 to 5 separate open tabs. By integrating Threat Intelligence directly into
+   CyberShield AI, any suspicious URL scanned in the Phishing module can be cross-correlated against live
+   IOCs and CVE advisories instantly within the same unified interface.
+
+Q2: How does the alerting system prevent "Alert Fatigue" during a cyber attack?
+A: We implemented an automated deduplication filter in server.ts. If the same malicious URL or IP address
+   triggers 50 alerts within a 60-second window, CyberShield AI aggregates them into a single incident entry,
+   increments the recurrence counter, and dispatches only one webhook notification to Discord/Slack, preventing
+   the notification channel from becoming spammed.
+
+Q3: What happens if Discord or Slack webhooks fail or the server loses internet connectivity?
+A: The webhook dispatcher in server.ts uses non-blocking asynchronous execution wrapped in try/catch blocks
+   with a 4-second timeout. If the webhook endpoint fails (e.g., HTTP 429 rate limit or network outage), the
+   error is logged gracefully to the server console, but the core scanning operation and local dashboard alerts
+   continue operating without interruption.
+
+Q4: What role did web scraping play in your feasibility study?
+A: Free cybersecurity APIs (like VirusTotal or AlienVault) limit non-commercial accounts to 4 queries per minute.
+   Our web scraping feasibility study evaluated automated headless DOM parsing from open repositories (PhishTank,
+   URLhaus) using Cheerio and Puppeteer to bypass rate-limiting constraints and supply continuous ground-truth
+   malicious URLs for retraining our internal Random Forest model.
+
+====================================================================================================
+END OF STUDY GUIDE - SREEDEVI R P (ROLL NO: 59)
+====================================================================================================

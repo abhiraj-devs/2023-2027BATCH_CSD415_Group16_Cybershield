@@ -662,7 +662,7 @@ app.get("/api/health", (req, res) => {
 const otpStore: Record<string, { otp: string; expiresAt: number; purpose: string }> = {};
 
 // Auth
-app.post("/api/auth/send-otp", (req, res) => {
+app.post(["/api/auth/send-otp", "/api/auth/request-otp"], (req, res) => {
   const { email, purpose } = req.body;
   if (!email || typeof email !== "string" || !email.includes("@")) {
     return res.status(400).json({ success: false, error: { message: "Valid email address is required" } });
@@ -805,8 +805,8 @@ app.get("/api/auth/me", (req, res) => {
   res.json({ success: true, data: { user: db.users[0] } });
 });
 
-// Dashboard Summary
-app.get("/api/dashboard/summary", (req, res) => {
+// Dashboard Summary & Stats
+app.get(["/api/dashboard/summary", "/api/dashboard/stats"], (req, res) => {
   const phishingThreats = db.phishingScans.filter(s => s.classification === 'PHISHING' || s.classification === 'SUSPICIOUS').length;
   const malwareThreats = db.malwareScans.filter(m => m.malicious).length;
   const activeAnomalies = db.networkEvents.filter(n => n.anomalyScore > 60).length;
@@ -844,7 +844,7 @@ async function callPhishGuardRender(url: string) {
       { url },
       {
         headers: { "Content-Type": "application/json" },
-        timeout: 6000,
+        timeout: 3500,
       }
     );
     const latencyMs = Date.now() - startTime;
@@ -913,6 +913,9 @@ app.post("/api/phishing/analyze", async (req, res) => {
       return res.status(400).json({ success: false, error: { code: "MALFORMED_URL", message: "The provided URL is malformed." } });
     }
 
+    // --- Start Engine 1 Call Concurrently ---
+    const renderCallPromise = callPhishGuardRender(url);
+
     const hostname = parsedUrl.hostname;
     const pathname = parsedUrl.pathname;
     const urlLength = url.length;
@@ -948,8 +951,8 @@ app.post("/api/phishing/analyze", async (req, res) => {
     let engine2Confidence = Number((0.85 + (Math.abs(engine2Score - 50) / 250)).toFixed(2));
     if (engine2Confidence > 0.99) engine2Confidence = 0.99;
 
-    // --- ENGINE 1: Live PhishGuard 235k AI Model on Render ---
-    const renderCall = await callPhishGuardRender(url);
+    // --- ENGINE 1: Await PhishGuard Result ---
+    const renderCall = await renderCallPromise;
     let engine1IsPhishing = false;
     let engine1Prob = 0;
     let engine1Features: Record<string, any> = {};
@@ -1002,17 +1005,19 @@ app.post("/api/phishing/analyze", async (req, res) => {
       finalVerdict === 'CONFIRMED_PHISHING' ? 'PHISHING' :
       finalVerdict === 'SUSPICIOUS' ? 'SUSPICIOUS' : 'SAFE';
 
-    // Optional Gemini AI expert explanation
+    // Optional Gemini AI expert explanation with strict 3-second ceiling
     let aiExplanation = `Two-way checking concluded with ${agreement.replace('_', ' ')}. Engine 1 (PhishGuard Cloud) indicated ${engine1Prob}% phishing likelihood, and Engine 2 identified ${dotsCount} subdomains and ${suspiciousKeywordsCount} sensitive keywords. Overall combined risk: ${combinedScore}/100.`;
     
     if (process.env.GEMINI_API_KEY) {
       try {
-        const aiRes = await ai.models.generateContent({
+        const geminiPromise = ai.models.generateContent({
           model: "gemini-3.6-flash",
           contents: `You are a cybersecurity AI SOC analyst specializing in dual-engine consensus analysis. Provide a concise 2-sentence expert threat explanation for URL "${url}". Engine 1 (PhishGuard 235k cloud model) reported ${engine1Prob}% risk (${engine1IsPhishing ? 'Phishing' : 'Legitimate'}), Engine 2 (CyberShield lexical) reported ${engine2Score}/100 (${engine2Class}). Overall verdict is ${finalVerdict}. Highlight the key structural or threat characteristics.`,
         });
-        if (aiRes.text) {
-          aiExplanation = aiRes.text.trim();
+        const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500));
+        const aiRes = await Promise.race([geminiPromise, timeoutPromise]);
+        if (aiRes && (aiRes as any).text) {
+          aiExplanation = (aiRes as any).text.trim();
         }
       } catch (err: any) {
         console.warn("Gemini explanation API fallback triggered.", err?.message);
@@ -1324,7 +1329,7 @@ app.get("/api/network/events", (req, res) => {
   res.json({ success: true, data: db.networkEvents });
 });
 
-app.get("/api/network/summary", (req, res) => {
+app.get(["/api/network/summary", "/api/network/telemetry"], (req, res) => {
   res.json({
     success: true,
     data: {
@@ -2354,7 +2359,7 @@ function generateRealtimeStreamItem(preferredSource?: 'CISA' | 'MITRE' | 'ALIENV
 }
 
 // Threat Intelligence API Endpoints
-app.get("/api/threat-intelligence", async (req, res) => {
+app.get(["/api/threat-intelligence", "/api/threat-intel"], async (req, res) => {
   // Sync CISA KEV on demand if cache is empty or older than 10 mins
   if (!cisaCatalogCache) {
     const liveCisaItems = await fetchLiveCisaKevItems(4);
@@ -2468,7 +2473,7 @@ app.post("/api/alerts/:id/acknowledge", (req, res) => {
 });
 
 // Settings & Webhooks
-app.get("/api/settings", (req, res) => {
+app.get(["/api/settings", "/api/settings/webhooks"], (req, res) => {
   res.json({ success: true, data: db.settings });
 });
 

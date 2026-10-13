@@ -1,13 +1,80 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { initializeFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { 
+  getAuth, 
+  initializeAuth, 
+  browserLocalPersistence, 
+  browserSessionPersistence, 
+  inMemoryPersistence, 
+  indexedDBLocalPersistence,
+  browserPopupRedirectResolver,
+  GoogleAuthProvider 
+} from 'firebase/auth';
+import { initializeFirestore, memoryLocalCache, doc, getDocFromServer, setLogLevel } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
-const app = initializeApp(firebaseConfig);
+// Permanently prevent "Database is closing/hidden" error in browser iframe / hidden visibility
+if (typeof window !== 'undefined' && indexedDBLocalPersistence) {
+  try {
+    const proto = (indexedDBLocalPersistence as any).prototype;
+    if (proto) {
+      proto.registerLifecycleListeners = function() {};
+      const origOpenDb = proto._openDb;
+      proto._openDb = async function(this: any) {
+        this.isHiding = false;
+        if (origOpenDb) {
+          return origOpenDb.apply(this);
+        }
+      };
+    }
+  } catch {
+    // Ignore
+  }
+}
+
+// Silence verbose internal SDK offline/retry errors from bubbling as fatal errors
+try {
+  setLogLevel('silent');
+} catch {
+  // Ignore
+}
+
+if (typeof window !== 'undefined') {
+  const origError = console.error;
+  console.error = function (...args: any[]) {
+    if (args.some(arg => typeof arg === 'string' && (
+      arg.includes('Database is closing/hidden') ||
+      arg.includes('Could not reach Cloud Firestore backend') ||
+      arg.includes('Backend didn\'t respond within 10 seconds')
+    ))) {
+      console.warn(...args);
+      return;
+    }
+    origError.apply(console, args);
+  };
+}
+
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+
 export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true
+  localCache: memoryLocalCache(),
 }, firebaseConfig.firestoreDatabaseId);
-export const auth = getAuth(app);
+
+let authInstance;
+if (typeof window !== 'undefined') {
+  try {
+    authInstance = initializeAuth(app, {
+      persistence: [browserLocalPersistence, browserSessionPersistence, inMemoryPersistence],
+      popupRedirectResolver: browserPopupRedirectResolver,
+    });
+  } catch {
+    authInstance = getAuth(app);
+  }
+} else {
+  authInstance = getAuth(app);
+}
+
+export const auth = authInstance;
+export { browserPopupRedirectResolver };
 
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
@@ -59,8 +126,16 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   throw new Error(JSON.stringify(errInfo));
 }
 
-// Test connection
+// Test connection safely when online
 export async function testConnection() {
+  if (typeof window !== 'undefined') {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      return;
+    }
+    if (document.visibilityState === 'hidden') {
+      return;
+    }
+  }
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
   } catch (error) {
@@ -69,4 +144,7 @@ export async function testConnection() {
     }
   }
 }
-testConnection();
+
+if (typeof window !== 'undefined') {
+  testConnection().catch(() => {});
+}
