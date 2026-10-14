@@ -1,9 +1,28 @@
 import { PhishingScan, MalwareScan, NetworkEvent, ThreatItem, ThreatSourceStatus, SecurityAlert, DashboardSummary, QuickScanResult } from "../types";
 
+export function getActiveUserEmail(): string | null {
+  try {
+    const userStr = localStorage.getItem("cybershield_user");
+    if (userStr) {
+      const parsed = JSON.parse(userStr);
+      if (parsed?.email) {
+        return parsed.email.toLowerCase().trim();
+      }
+    }
+  } catch {}
+  return null;
+}
+
 const getHeaders = () => {
-  return {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
+  const activeEmail = getActiveUserEmail();
+  if (activeEmail) {
+    headers["X-User-Email"] = activeEmail;
+    headers["Authorization"] = `Bearer ${activeEmail}`;
+  }
+  return headers;
 };
 
 // Fallback seed datasets used if network or container has a transient outage or cold start
@@ -322,25 +341,30 @@ async function safeFetchJson<T>(
       });
       clearTimeout(timeoutId);
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-
       const text = await res.text();
-      let json: any;
+      let json: any = null;
       try {
         json = JSON.parse(text);
       } catch {
-        throw new Error("Invalid JSON response");
+        // Not JSON
       }
 
-      if (!json.success && json.error) {
+      if (!res.ok) {
+        const errorMsg = json?.error?.message || json?.message || `HTTP ${res.status}`;
+        throw new Error(errorMsg);
+      }
+
+      if (json && !json.success && json.error) {
         throw new Error(json.error.message || `Request to ${url} unsuccessful`);
       }
 
-      return json.data !== undefined ? json.data : (json as unknown as T);
+      return json?.data !== undefined ? json.data : (json as unknown as T);
     } catch (err: any) {
       lastError = err;
+      // Do not retry 4xx errors
+      if (err.message && (err.message.includes("HTTP 4") || err.message.includes("password") || err.message.includes("account") || err.message.includes("email"))) {
+        break;
+      }
       if (attempt < retries) {
         // Wait briefly before retrying
         await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
@@ -456,13 +480,14 @@ function calculateLocalPhishingFallback(url: string): PhishingScan {
   };
 }
 
-export async function analyzePhishingUrl(url: string): Promise<PhishingScan> {
+export async function analyzePhishingUrl(url: string, userEmail?: string): Promise<PhishingScan> {
+  const activeEmail = userEmail || getActiveUserEmail();
   try {
     return await safeFetchJson<PhishingScan>(
       "/api/phishing/analyze",
       {
         method: "POST",
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, userEmail: activeEmail || undefined }),
         timeoutMs: 12000,
       } as any,
       undefined,
@@ -499,8 +524,13 @@ export async function fetchPhishGuardStatus(): Promise<{
   });
 }
 
-export async function fetchPhishingHistory(): Promise<PhishingScan[]> {
-  return safeFetchJson<PhishingScan[]>("/api/phishing/history", {}, []);
+export async function fetchPhishingHistory(userEmail?: string): Promise<PhishingScan[]> {
+  const activeEmail = userEmail || getActiveUserEmail();
+  if (!activeEmail) {
+    // Unauthenticated/guest visitors have NO persistent history across refreshes
+    return [];
+  }
+  return safeFetchJson<PhishingScan[]>(`/api/phishing/history?userEmail=${encodeURIComponent(activeEmail)}`, {}, []);
 }
 
 export async function fetchCrowdsourcedThreats(): Promise<any[]> {
@@ -519,15 +549,20 @@ export async function discardCrowdsourcedThreat(id: string): Promise<any> {
   });
 }
 
-export async function scanMalwareFile(filename: string, sha256?: string, fileContent?: string): Promise<MalwareScan> {
+export async function scanMalwareFile(filename: string, sha256?: string, fileContent?: string, userEmail?: string): Promise<MalwareScan> {
+  const activeEmail = userEmail || getActiveUserEmail();
   return safeFetchJson<MalwareScan>("/api/malware/scan", {
     method: "POST",
-    body: JSON.stringify({ filename, sha256, fileContent }),
+    body: JSON.stringify({ filename, sha256, fileContent, userEmail: activeEmail || undefined }),
   });
 }
 
-export async function fetchMalwareHistory(): Promise<MalwareScan[]> {
-  return safeFetchJson<MalwareScan[]>("/api/malware/history", {}, []);
+export async function fetchMalwareHistory(userEmail?: string): Promise<MalwareScan[]> {
+  const activeEmail = userEmail || getActiveUserEmail();
+  if (!activeEmail) {
+    return [];
+  }
+  return safeFetchJson<MalwareScan[]>(`/api/malware/history?userEmail=${encodeURIComponent(activeEmail)}`, {}, []);
 }
 
 export async function fetchNetworkEvents(): Promise<NetworkEvent[]> {
@@ -697,6 +732,9 @@ export async function clearAllHistory(): Promise<any> {
   });
 }
 
+
+
+
 export async function sendAuthOtp(
   email: string,
   purpose: string = "login"
@@ -719,6 +757,33 @@ export async function verifyAuthOtp(
     {
       method: "POST",
       body: JSON.stringify({ email, otp }),
+    }
+  );
+}
+
+export async function registerWithServerApi(
+  name: string,
+  email: string,
+  password?: string
+): Promise<{ success: boolean; data: { user: any; token: string }; message: string }> {
+  return safeFetchJson<{ success: boolean; data: { user: any; token: string }; message: string }>(
+    "/api/auth/register",
+    {
+      method: "POST",
+      body: JSON.stringify({ name, email, password }),
+    }
+  );
+}
+
+export async function loginWithServerApi(
+  email: string,
+  password?: string
+): Promise<{ success: boolean; data: { user: any; token: string }; message: string }> {
+  return safeFetchJson<{ success: boolean; data: { user: any; token: string }; message: string }>(
+    "/api/auth/login",
+    {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
     }
   );
 }

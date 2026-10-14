@@ -46,10 +46,14 @@ export default function PhishingView() {
   } | null>(null);
 
   useEffect(() => {
-    fetchPhishingHistory().then(setHistory).catch(() => {});
+    if (user?.email) {
+      fetchPhishingHistory(user.email).then(setHistory).catch(() => {});
+    } else {
+      setHistory([]);
+    }
     fetchCrowdsourcedThreats().then(setCrowdsourcedThreats).catch(() => {});
     fetchPhishGuardStatus().then(setEngineStatus).catch(() => {});
-  }, []);
+  }, [user]);
 
   const handleVerifyThreat = async (id: string) => {
     await verifyCrowdsourcedThreat(id);
@@ -81,13 +85,18 @@ export default function PhishingView() {
     setLoading(true);
     setError(null);
     try {
-      const data = await analyzePhishingUrl(targetUrl.trim());
+      const data = await analyzePhishingUrl(targetUrl.trim(), user?.email || undefined);
       setCurrentResult(data);
-      try {
-        const updatedHistory = await fetchPhishingHistory();
-        setHistory(updatedHistory);
-      } catch (histErr) {
-        console.warn("History fetch warning:", histErr);
+      if (user?.email) {
+        try {
+          const updatedHistory = await fetchPhishingHistory(user.email);
+          setHistory(updatedHistory);
+        } catch (histErr) {
+          setHistory(prev => [data, ...prev.filter(item => item.id !== data.id)]);
+        }
+      } else {
+        // Guest user: show in local history for this active session ONLY (will reset upon refresh)
+        setHistory(prev => [data, ...prev.filter(item => item.id !== data.id)]);
       }
     } catch (err: any) {
       if (err.name === 'AbortError' || err.message?.toLowerCase().includes('abort')) {
@@ -455,54 +464,73 @@ export default function PhishingView() {
 
       {/* Phishing History Table */}
       <div className="p-4 sm:p-6 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 space-y-4">
-        <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3">
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Scan History & Two-Way Consensus Log</h3>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3 gap-2">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Scan History & Two-Way Consensus Log</h3>
+            {user?.email ? (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                Synced for {user.email}
+              </span>
+            ) : (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-medium">
+                Session only (clears on refresh)
+              </span>
+            )}
+          </div>
           <span className="text-[10px] font-mono text-zinc-500 uppercase">
             {history.length} Scans Recorded
           </span>
         </div>
-        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
-          <table className="w-full text-left border-collapse min-w-[640px]">
-            <thead>
-              <tr className="border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
-                <th className="py-2 px-3 font-normal">Target URL</th>
-                <th className="py-2 px-3 font-normal">Two-Way Verdict</th>
-                <th className="py-2 px-3 font-normal">Combined Risk</th>
-                <th className="py-2 px-3 font-normal">Engine 1 (Render)</th>
-                <th className="py-2 px-3 font-normal">Engine 2 (Lexical)</th>
-                <th className="py-2 px-3 font-normal">Timestamp</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-800/50 text-xs font-mono">
-              {history.map((scan) => (
-                <tr key={scan.id} className="hover:bg-zinc-100 dark:bg-zinc-900/50 transition-colors">
-                  <td className="py-2.5 px-3 text-zinc-700 dark:text-zinc-300 truncate max-w-xs">{scan.url}</td>
-                  <td className="py-2.5 px-3">
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                      scan.classification === 'PHISHING' ? 'text-red-500 bg-red-500/10 border border-red-500/20' :
-                      scan.classification === 'SUSPICIOUS' ? 'text-orange-500 bg-orange-500/10 border border-orange-500/20' :
-                      'text-emerald-500 bg-emerald-500/10 border border-emerald-500/20'
-                    }`}>
-                      {scan.dualEngine?.consensus.finalVerdict ? scan.dualEngine.consensus.finalVerdict.replace('_', ' ') : scan.classification}
-                    </span>
-                  </td>
-                  <td className="py-2.5 px-3 font-bold text-zinc-900 dark:text-zinc-100">{scan.riskScore}/100</td>
-                  <td className="py-2.5 px-3 text-zinc-600 dark:text-zinc-400">
-                    {scan.dualEngine?.engine1.probability !== undefined 
-                      ? `${scan.dualEngine.engine1.probability.toFixed(0)}% (${scan.dualEngine.engine1.isPhishing ? 'Phish' : 'Safe'})`
-                      : 'Synced'}
-                  </td>
-                  <td className="py-2.5 px-3 text-zinc-600 dark:text-zinc-400">
-                    {scan.dualEngine?.engine2.riskScore !== undefined 
-                      ? `${scan.dualEngine.engine2.riskScore}/100` 
-                      : `${scan.riskScore}/100`}
-                  </td>
-                  <td className="py-2.5 px-3 text-[10px] text-zinc-600">{new Date(scan.scannedAt).toLocaleTimeString()}</td>
+        {history.length === 0 ? (
+          <div className="p-8 text-center text-zinc-500 text-xs font-mono">
+            {user?.email
+              ? "No scan history recorded for your account yet. Run a scan above to build your audit log."
+              : "No scans recorded in current session. Guest scans remain visible until page is refreshed. Sign in to permanently save your scan history."}
+          </div>
+        ) : (
+          <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+            <table className="w-full text-left border-collapse min-w-[640px]">
+              <thead>
+                <tr className="border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+                  <th className="py-2 px-3 font-normal">Target URL</th>
+                  <th className="py-2 px-3 font-normal">Two-Way Verdict</th>
+                  <th className="py-2 px-3 font-normal">Combined Risk</th>
+                  <th className="py-2 px-3 font-normal">Engine 1 (Render)</th>
+                  <th className="py-2 px-3 font-normal">Engine 2 (Lexical)</th>
+                  <th className="py-2 px-3 font-normal">Timestamp</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-zinc-800/50 text-xs font-mono">
+                {history.map((scan) => (
+                  <tr key={scan.id} className="hover:bg-zinc-100 dark:bg-zinc-900/50 transition-colors">
+                    <td className="py-2.5 px-3 text-zinc-700 dark:text-zinc-300 truncate max-w-xs">{scan.url}</td>
+                    <td className="py-2.5 px-3">
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                        scan.classification === 'PHISHING' ? 'text-red-500 bg-red-500/10 border border-red-500/20' :
+                        scan.classification === 'SUSPICIOUS' ? 'text-orange-500 bg-orange-500/10 border border-orange-500/20' :
+                        'text-emerald-500 bg-emerald-500/10 border border-emerald-500/20'
+                      }`}>
+                        {scan.dualEngine?.consensus.finalVerdict ? scan.dualEngine.consensus.finalVerdict.replace('_', ' ') : scan.classification}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-3 font-bold text-zinc-900 dark:text-zinc-100">{scan.riskScore}/100</td>
+                    <td className="py-2.5 px-3 text-zinc-600 dark:text-zinc-400">
+                      {scan.dualEngine?.engine1.probability !== undefined 
+                        ? `${scan.dualEngine.engine1.probability.toFixed(0)}% (${scan.dualEngine.engine1.isPhishing ? 'Phish' : 'Safe'})`
+                        : 'Synced'}
+                    </td>
+                    <td className="py-2.5 px-3 text-zinc-600 dark:text-zinc-400">
+                      {scan.dualEngine?.engine2.riskScore !== undefined 
+                        ? `${scan.dualEngine.engine2.riskScore}/100` 
+                        : `${scan.riskScore}/100`}
+                    </td>
+                    <td className="py-2.5 px-3 text-[10px] text-zinc-600">{new Date(scan.scannedAt).toLocaleTimeString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

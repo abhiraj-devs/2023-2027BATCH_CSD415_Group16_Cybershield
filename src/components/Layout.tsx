@@ -149,8 +149,9 @@ export default function Layout({
         <div className="p-4 border-t border-zinc-200 dark:border-zinc-800/80 shrink-0 flex items-center justify-between gap-2">
           {user ? (
             <button 
-              onClick={() => { setActiveTab('profile'); setSidebarOpen(false); }} 
-              className="flex items-center space-x-2.5 flex-1 min-w-0 p-1.5 rounded-md hover:bg-zinc-100 dark:bg-zinc-900 transition-colors text-left cursor-pointer"
+              onClick={() => { setAuthModalOpen(true); setSidebarOpen(false); }} 
+              className="flex items-center space-x-2.5 flex-1 min-w-0 p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors text-left cursor-pointer"
+              title="Click to view account and authentication details"
             >
               {user.photoURL ? (
                 <img 
@@ -168,15 +169,13 @@ export default function Layout({
                 <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate">
                   {user.displayName || user.email?.split('@')[0] || "Operator"}
                 </p>
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center space-x-1.5">
                   <span className={`text-[10px] font-mono font-bold ${isAdmin ? 'text-emerald-400' : 'text-blue-400'}`}>
                     {isAdmin ? 'Admin' : 'User'}
                   </span>
-                  {!emailVerified && (
-                    <span className="text-[9px] text-amber-400 font-mono" title="Email verification pending">
-                      • Unverified
-                    </span>
-                  )}
+                  <span className={`text-[9px] font-mono font-bold ${emailVerified ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    • {emailVerified ? 'Verified' : 'Unverified'}
+                  </span>
                 </div>
               </div>
             </button>
@@ -277,23 +276,7 @@ export default function Layout({
           </div>
         </header>
 
-        {/* Email verification reminder banner if user logged in but unverified */}
-        {user && !emailVerified && (
-          <div className="bg-amber-950/40 border-b border-amber-800/50 px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-amber-300 gap-2">
-            <div className="flex items-start sm:items-center space-x-2">
-              <span className="font-mono font-bold text-amber-400 shrink-0">[Verification Required]</span>
-              <span className="break-all sm:break-normal">
-                Verify <strong className="font-mono">{user.email}</strong> via email OTP.
-              </span>
-            </div>
-            <button
-              onClick={() => setAuthModalOpen(true)}
-              className="underline font-bold hover:text-amber-200 shrink-0 cursor-pointer self-end sm:self-auto"
-            >
-              Verify OTP
-            </button>
-          </div>
-        )}
+
 
         {/* View Content */}
         <div className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full overflow-x-hidden">

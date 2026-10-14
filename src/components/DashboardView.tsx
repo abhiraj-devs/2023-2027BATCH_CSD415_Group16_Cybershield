@@ -178,33 +178,6 @@ export default function DashboardView({
         </div>
       </div>
 
-      {/* Inference Performance Monitor */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-4 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-          <div>
-            <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-1">Deep Learning Inference Latency</div>
-            <div className="flex items-baseline space-x-2">
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 font-mono">15.85</span>
-              <span className="text-sm text-zinc-500 font-mono">ms / request</span>
-            </div>
-          </div>
-          <div className="w-10 h-10 rounded bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-            <Activity size={18} className="text-blue-500" />
-          </div>
-        </div>
-        <div className="p-4 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-          <div>
-            <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-1">Request Processing Rate</div>
-            <div className="flex items-baseline space-x-2">
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 font-mono">145</span>
-              <span className="text-sm text-zinc-500 font-mono">req / s</span>
-            </div>
-          </div>
-          <div className="w-10 h-10 rounded bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
-            <Zap size={18} className="text-purple-500" />
-          </div>
-        </div>
-      </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

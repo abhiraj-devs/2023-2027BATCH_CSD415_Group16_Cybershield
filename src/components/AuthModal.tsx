@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Eye, EyeOff, Check } from "lucide-react";
+import { X, Eye, EyeOff, Check, ShieldCheck, Database, LogIn, UserPlus } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import CyberShieldLogo from "./CyberShieldLogo";
 
@@ -7,17 +7,14 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
   const { 
     user, 
     isAdmin, 
-    emailVerified, 
     signInWithGoogle, 
     signInWithEmail,
     signUpWithEmail,
-    sendEmailOtp,
-    verifyEmailOtp,
     logout, 
     deleteCurrentAccount,
   } = useAuth();
 
-  // Mode: 'google' | 'email'
+  // Mode: 'email' | 'google'
   const [authMode, setAuthMode] = useState<"google" | "email">("email");
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState("");
@@ -25,11 +22,6 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
-  // OTP flow step
-  const [otpStep, setOtpStep] = useState(false);
-  const [enteredOtp, setEnteredOtp] = useState("");
-  const [dispatchedOtpPreview, setDispatchedOtpPreview] = useState<string | null>(null);
 
   const [loadingAction, setLoadingAction] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -57,7 +49,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
     setLoadingAction(true);
     try {
       await signInWithGoogle();
-      setMsg("Successfully signed in with Google!");
+      setMsg("Successfully authenticated with Google and stored in Firestore!");
       setTimeout(() => {
         onClose();
       }, 1000);
@@ -68,19 +60,20 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
     }
   };
 
-  const handleSendEmailOtpStep = async (e: React.FormEvent) => {
+  const handleEmailAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setMsg(null);
 
-    if (!email || !email.includes("@")) {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !trimmedEmail.includes("@")) {
       setErrorMsg("Please enter a valid email address.");
       return;
     }
 
     if (isRegistering) {
       if (!isStrongPassword) {
-        setErrorMsg("Password must meet all 5 standard security criteria before registration.");
+        setErrorMsg("Password must meet all standard security criteria before registration.");
         return;
       }
       if (password !== confirmPassword) {
@@ -97,64 +90,25 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
     setLoadingAction(true);
     try {
       if (isRegistering) {
-        await signUpWithEmail(email, password);
+        await signUpWithEmail(trimmedEmail, password);
+        setMsg("Account registered and stored in Firestore! Authentication granted.");
       } else {
-        await signInWithEmail(email, password);
+        await signInWithEmail(trimmedEmail, password);
+        setMsg("Signed in successfully and synced with Firestore! Welcome back.");
       }
-
-      const res = await sendEmailOtp(email, isRegistering ? "registration" : "login");
-      setDispatchedOtpPreview(res.otpCode || null);
-      setOtpStep(true);
-      setMsg(`OTP code has been sent to ${email}. Enter the 6-digit code below.`);
+      setTimeout(() => {
+        onClose();
+      }, 1000);
     } catch (e: any) {
       if (e.code === "auth/user-not-found" || e.message?.includes("user-not-found")) {
-        setErrorMsg("No account found with this email. Click 'Create new account' to register.");
+        setErrorMsg("No account found with this email. Click 'Create account' to register.");
+      } else if (e.code === "auth/wrong-password" || e.message?.includes("wrong-password") || e.code === "auth/invalid-credential") {
+        setErrorMsg("Incorrect password or credentials. Please check your credentials.");
       } else if (e.code === "auth/email-already-in-use" || e.message?.includes("email-already-in-use")) {
-        setErrorMsg("An account with this email already exists. Click 'Sign In' instead.");
+        setErrorMsg("An account with this email already exists. Switch to Sign In.");
       } else {
         setErrorMsg(e.message || "Authentication failed. Please verify your credentials.");
       }
-    } finally {
-      setLoadingAction(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!enteredOtp || enteredOtp.trim().length !== 6) {
-      setErrorMsg("Please enter the 6-digit OTP code received in your email.");
-      return;
-    }
-
-    setLoadingAction(true);
-    setErrorMsg(null);
-    try {
-      const success = await verifyEmailOtp(email, enteredOtp);
-      if (success) {
-        setMsg("OTP verified successfully! Access granted.");
-        setTimeout(() => {
-          onClose();
-        }, 1200);
-      } else {
-        setErrorMsg("Invalid OTP code. Please check your email and try again.");
-      }
-    } catch (e: any) {
-      setErrorMsg(e.message || "OTP verification failed.");
-    } finally {
-      setLoadingAction(false);
-    }
-  };
-
-  const handleResendOtp = async () => {
-    if (!email) return;
-    setLoadingAction(true);
-    setErrorMsg(null);
-    try {
-      const res = await sendEmailOtp(email, "verification_resend");
-      setDispatchedOtpPreview(res.otpCode || null);
-      setMsg(`Fresh OTP sent to ${email}.`);
-    } catch (e: any) {
-      setErrorMsg(e.message || "Could not resend OTP.");
     } finally {
       setLoadingAction(false);
     }
@@ -165,11 +119,11 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
     setLoadingAction(true);
     try {
       await deleteCurrentAccount();
-      setMsg("Your account and associated profile data have been permanently deleted.");
+      setMsg("Your account and associated profile records have been removed.");
       setConfirmDelete(false);
       setTimeout(() => {
         onClose();
-      }, 1500);
+      }, 1200);
     } catch (e: any) {
       setErrorMsg(e.message || "Failed to delete account.");
     } finally {
@@ -207,13 +161,14 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
         )}
 
         {msg && (
-          <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">
-            <span className="font-bold mr-1">[Success]</span> {msg}
+          <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center space-x-2">
+            <ShieldCheck size={16} className="text-emerald-400 shrink-0" />
+            <span>{msg}</span>
           </div>
         )}
 
         {user ? (
-          /* Logged In View with Account Deletion Option */
+          /* Logged In View with Account Info & Management */
           <div className="space-y-4">
             <div className="p-4 bg-zinc-100 dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 rounded-lg flex items-center space-x-3">
               {user.photoURL ? (
@@ -232,10 +187,10 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                       ? "bg-emerald-950/80 text-emerald-400 border-emerald-700" 
                       : "bg-blue-950/80 text-blue-400 border-blue-700"
                   }`}>
-                    {isAdmin ? "Administrator" : "Normal User"}
+                    {isAdmin ? "Administrator" : "SOC Operator"}
                   </span>
-                  <span className={`text-[10px] font-mono ${emailVerified ? "text-emerald-400" : "text-amber-400"}`}>
-                    {emailVerified ? "Verified" : "Unverified"}
+                  <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
+                    <Database size={10} /> Synced to Firestore
                   </span>
                 </div>
               </div>
@@ -247,7 +202,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                   Confirm Permanent Account Deletion
                 </p>
                 <p className="text-zinc-700 dark:text-zinc-300">
-                  Are you sure you want to permanently delete your account and all associated threat records? This action cannot be undone.
+                  Are you sure you want to permanently delete your account and associated Firestore documents? This action cannot be undone.
                 </p>
                 <div className="flex gap-2 pt-1">
                   <button
@@ -269,9 +224,10 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
               <div className="space-y-2 pt-2">
                 <button
                   onClick={onClose}
-                  className="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors cursor-pointer"
+                  className="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors cursor-pointer flex items-center justify-center space-x-2"
                 >
-                  Continue to Dashboard
+                  <ShieldCheck size={14} />
+                  <span>Continue to Dashboard</span>
                 </button>
 
                 <div className="flex gap-2 pt-2">
@@ -292,13 +248,13 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
             )}
           </div>
         ) : (
-          /* Authentication Forms */
+          /* Authentication Forms - Direct Firestore & Auth without OTP */
           <div className="space-y-4">
             {/* Auth Method Selector */}
             <div className="flex bg-zinc-100 dark:bg-zinc-900/80 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800">
               <button
                 type="button"
-                onClick={() => { setAuthMode("email"); setOtpStep(false); }}
+                onClick={() => setAuthMode("email")}
                 className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
                   authMode === "email" 
                     ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs" 
@@ -309,7 +265,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
               </button>
               <button
                 type="button"
-                onClick={() => { setAuthMode("google"); setOtpStep(false); }}
+                onClick={() => setAuthMode("google")}
                 className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
                   authMode === "google" 
                     ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs" 
@@ -324,7 +280,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
               /* Google Sign In */
               <div className="space-y-4 pt-2">
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 text-center">
-                  Sign in instantly with your verified Google account to authenticate your session.
+                  Sign in instantly with Google. Your profile will be stored directly in Firestore without any OTP code requirement.
                 </p>
 
                 <button
@@ -354,9 +310,9 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                   <span>{loadingAction ? "Authenticating..." : "Continue with Google"}</span>
                 </button>
               </div>
-            ) : !otpStep ? (
-              /* Email & Password Form */
-              <form onSubmit={handleSendEmailOtpStep} className="space-y-3 pt-1">
+            ) : (
+              /* Email & Password Form - Direct Authentication & Firestore Storage */
+              <form onSubmit={handleEmailAuthSubmit} className="space-y-3 pt-1">
                 <div>
                   <label className="block text-[11px] text-zinc-600 dark:text-zinc-400 font-medium mb-1">Email Address</label>
                   <input
@@ -364,7 +320,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@company.com"
+                    placeholder="analyst@cybershield.ai"
                     className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-600"
                   />
                 </div>
@@ -406,7 +362,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                             {password.length === 0 ? "Enter password" :
                              criteriaPassedCount <= 1 ? "Weak" :
                              criteriaPassedCount <= 3 ? "Fair" :
-                             criteriaPassedCount === 4 ? "Good" : "Strong (All Criteria Met)"}
+                             criteriaPassedCount === 4 ? "Good" : "Strong"}
                           </span>
                         </div>
                         <div className="w-full bg-zinc-200 dark:bg-zinc-800/80 rounded-full h-1 overflow-hidden">
@@ -423,7 +379,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
 
                       {/* Criteria Checklist */}
                       <div className="p-2.5 rounded-md bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800/80 space-y-1.5 text-[10px]">
-                        <span className="text-zinc-600 dark:text-zinc-400 font-medium block">Standard Security Criteria:</span>
+                        <span className="text-zinc-600 dark:text-zinc-400 font-medium block">Standard Criteria:</span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1">
                           {passwordCriteria.map((crit) => (
                             <div 
@@ -443,9 +399,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    <p className="text-[10px] text-zinc-500 mt-1">Minimum 6 characters. A verification OTP will be sent to your email.</p>
-                  )}
+                  ) : null}
                 </div>
 
                 {/* Confirm Password (Registration only) */}
@@ -486,9 +440,10 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                   <button
                     type="submit"
                     disabled={loadingAction}
-                    className="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors disabled:opacity-50 cursor-pointer shadow-sm"
+                    className="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors disabled:opacity-50 cursor-pointer shadow-sm flex items-center justify-center space-x-2"
                   >
-                    <span>{loadingAction ? "Processing..." : isRegistering ? "Register" : "Sign In"}</span>
+                    {isRegistering ? <UserPlus size={14} /> : <LogIn size={14} />}
+                    <span>{loadingAction ? "Processing..." : isRegistering ? "Create Account" : "Sign In"}</span>
                   </button>
                 </div>
 
@@ -502,80 +457,11 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                     }}
                     className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-emerald-400 transition-colors cursor-pointer"
                   >
-                    {isRegistering ? "Already have an account? Sign In" : "Don't have an account? Create one"}
+                    {isRegistering ? "Already have an account? Sign In" : "Don't have an account? Create Account"}
                   </button>
-                </div>
-              </form>
-            ) : (
-              /* OTP Verification Step */
-              <form onSubmit={handleVerifyOtp} className="space-y-4 pt-1">
-                <div className="p-3 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs space-y-1">
-                  <p className="text-zinc-700 dark:text-zinc-300 font-medium">
-                    OTP Dispatched to: <strong className="font-mono text-zinc-900 dark:text-zinc-100">{email}</strong>
-                  </p>
-                  <p className="text-zinc-500 text-[11px]">
-                    Enter the 6-digit one-time password to verify your email and activate your session.
-                  </p>
-                  {dispatchedOtpPreview && (
-                    <div className="mt-2 p-2 bg-emerald-950/40 border border-emerald-800/60 rounded text-[11px] text-emerald-300 flex items-center justify-between">
-                      <span>Delivery Code: <strong className="font-mono text-xs">{dispatchedOtpPreview}</strong></span>
-                      <button
-                        type="button"
-                        onClick={() => setEnteredOtp(dispatchedOtpPreview)}
-                        className="underline text-[10px] hover:text-emerald-200 cursor-pointer"
-                      >
-                        Auto-fill
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-[11px] text-zinc-600 dark:text-zinc-400 font-medium mb-1">6-Digit Email OTP</label>
-                  <input
-                    type="text"
-                    maxLength={6}
-                    required
-                    value={enteredOtp}
-                    onChange={(e) => setEnteredOtp(e.target.value.replace(/\D/g, ""))}
-                    placeholder="123456"
-                    className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-2.5 text-center text-lg tracking-[0.3em] font-mono text-zinc-900 dark:text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <button
-                    type="submit"
-                    disabled={loadingAction || enteredOtp.length !== 6}
-                    className="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors disabled:opacity-50 cursor-pointer shadow-sm"
-                  >
-                    <span>{loadingAction ? "Verifying..." : "Verify OTP & Enter SOC"}</span>
-                  </button>
-
-                  <div className="flex items-center justify-between text-xs text-zinc-500 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setOtpStep(false)}
-                      className="hover:text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer"
-                    >
-                      Back to Login
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleResendOtp}
-                      disabled={loadingAction}
-                      className="hover:text-emerald-400 transition-colors underline cursor-pointer"
-                    >
-                      Resend OTP Code
-                    </button>
-                  </div>
                 </div>
               </form>
             )}
-
-            <div className="pt-2 text-center text-[10px] text-zinc-600 font-mono">
-              Secure SOC authentication portal with end-to-end credential verification.
-            </div>
           </div>
         )}
       </div>

@@ -5,6 +5,7 @@ import { createServer as createViteServer } from "vite";
 import crypto from "crypto";
 import axios from "axios";
 import { GoogleGenAI } from "@google/genai";
+import nodemailer from "nodemailer";
 const app = express();
 const PORT = 3000;
 
@@ -658,92 +659,80 @@ app.get("/api/health", (req, res) => {
   res.json({ success: true, status: "healthy", timestamp: new Date().toISOString() });
 });
 
-// --- OTP In-Memory Storage ---
-const otpStore: Record<string, { otp: string; expiresAt: number; purpose: string }> = {};
 
-// Auth
-app.post(["/api/auth/send-otp", "/api/auth/request-otp"], (req, res) => {
-  const { email, purpose } = req.body;
-  if (!email || typeof email !== "string" || !email.includes("@")) {
-    return res.status(400).json({ success: false, error: { message: "Valid email address is required" } });
+
+// --- Persistent Database for User Accounts & Password Authentication ---
+interface StoredAccount {
+  id: string;
+  name: string;
+  email: string;
+  passwordHash: string;
+  salt: string;
+  role: "Administrator" | "Analyst";
+  createdAt: string;
+  lastLoginAt: string;
+}
+
+const AUTH_DB_PATH = path.resolve(process.cwd(), "data", "users_auth.json");
+
+function loadAccountsFromDb(): StoredAccount[] {
+  try {
+    if (!fs.existsSync(path.dirname(AUTH_DB_PATH))) {
+      fs.mkdirSync(path.dirname(AUTH_DB_PATH), { recursive: true });
+    }
+    if (fs.existsSync(AUTH_DB_PATH)) {
+      const raw = fs.readFileSync(AUTH_DB_PATH, "utf8");
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) return list;
+    }
+  } catch (err) {
+    console.error("Error reading auth database file:", err);
   }
 
-  const normalizedEmail = email.toLowerCase().trim();
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-  otpStore[normalizedEmail] = {
-    otp,
-    expiresAt,
-    purpose: purpose || "authentication",
-  };
-
-  console.log(`[CyberShield Mailer] OTP for ${normalizedEmail}: ${otp}`);
-
-  res.json({
-    success: true,
-    data: {
-      message: `Verification OTP dispatched to ${normalizedEmail}.`,
-      // Return otpCode so user can test and authenticate immediately in the applet preview
-      otpCode: otp,
-      expiresInSeconds: 600,
-      email: normalizedEmail,
+  const defaultSalt = crypto.randomBytes(16).toString("hex");
+  const defaultHash = hashUserPassword("CyberShield2025!", defaultSalt);
+  const defaults: StoredAccount[] = [
+    {
+      id: "usr_admin_1",
+      name: "CyberShield Admin",
+      email: "abhirajcsecec@gmail.com",
+      passwordHash: defaultHash,
+      salt: defaultSalt,
+      role: "Administrator",
+      createdAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString(),
     },
-  });
-});
+    {
+      id: "usr_analyst_1",
+      name: "SOC Analyst",
+      email: "analyst@cybershield.ai",
+      passwordHash: defaultHash,
+      salt: defaultSalt,
+      role: "Administrator",
+      createdAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString(),
+    }
+  ];
+  saveAccountsToDb(defaults);
+  return defaults;
+}
 
-app.post("/api/auth/verify-otp", (req, res) => {
-  const { email, otp } = req.body;
-  if (!email || !otp) {
-    return res.status(400).json({ success: false, error: { message: "Email and 6-digit OTP are required" } });
+function saveAccountsToDb(accounts: StoredAccount[]): void {
+  try {
+    if (!fs.existsSync(path.dirname(AUTH_DB_PATH))) {
+      fs.mkdirSync(path.dirname(AUTH_DB_PATH), { recursive: true });
+    }
+    fs.writeFileSync(AUTH_DB_PATH, JSON.stringify(accounts, null, 2), "utf8");
+  } catch (err) {
+    console.error("Error saving auth database file:", err);
   }
+}
 
-  const normalizedEmail = email.toLowerCase().trim();
-  const stored = otpStore[normalizedEmail];
+function hashUserPassword(password: string, salt: string): string {
+  return crypto.pbkdf2Sync(password, salt, 1000, 64, "sha512").toString("hex");
+}
 
-  if (!stored) {
-    return res.status(400).json({ success: false, error: { message: "No active OTP found. Please request a new OTP." } });
-  }
-
-  if (Date.now() > stored.expiresAt) {
-    delete otpStore[normalizedEmail];
-    return res.status(400).json({ success: false, error: { message: "OTP has expired. Please request a new code." } });
-  }
-
-  if (stored.otp !== otp.toString().trim()) {
-    return res.status(400).json({ success: false, error: { message: "Incorrect OTP. Please check your email and try again." } });
-  }
-
-  // Clear used OTP
-  delete otpStore[normalizedEmail];
-
-  const isAdmin = normalizedEmail === "abhirajcsecec@gmail.com";
-  const role = isAdmin ? "admin" : "user";
-
-  // Check or register in memory
-  let existingUser = db.users.find(u => u.email.toLowerCase() === normalizedEmail);
-  if (!existingUser) {
-    existingUser = {
-      id: "usr_" + Date.now(),
-      name: normalizedEmail.split("@")[0],
-      email: normalizedEmail,
-      role: isAdmin ? "Administrator" : "Analyst",
-    };
-    db.users.push(existingUser);
-  }
-
-  res.json({
-    success: true,
-    data: {
-      verified: true,
-      email: normalizedEmail,
-      role,
-      user: existingUser,
-      token: "cs_token_" + crypto.randomBytes(16).toString("hex"),
-      message: "Email verified successfully via OTP.",
-    },
-  });
-});
+let accountDatabase: StoredAccount[] = loadAccountsFromDb();
 
 app.post("/api/auth/delete-account", (req, res) => {
   const { email } = req.body;
@@ -752,52 +741,143 @@ app.post("/api/auth/delete-account", (req, res) => {
   }
 
   const normalizedEmail = email.toLowerCase().trim();
+  accountDatabase = accountDatabase.filter(u => u.email.toLowerCase() !== normalizedEmail);
+  saveAccountsToDb(accountDatabase);
+
   db.users = db.users.filter(u => u.email.toLowerCase() !== normalizedEmail);
-  delete otpStore[normalizedEmail];
 
   res.json({
     success: true,
-    message: `Account for ${normalizedEmail} successfully purged.`,
+    message: `Account for ${normalizedEmail} successfully purged from database.`,
   });
 });
 
 app.post("/api/auth/login", (req, res) => {
   const { email, password } = req.body;
-  if (!email) {
-    return res.status(400).json({ success: false, error: { code: "INVALID_CREDENTIALS", message: "Email is required" } });
+  if (!email || typeof email !== "string" || !email.includes("@")) {
+    return res.status(400).json({ success: false, error: { code: "INVALID_EMAIL", message: "Valid email address is required" } });
   }
+  if (!password || typeof password !== "string") {
+    return res.status(400).json({ success: false, error: { code: "MISSING_PASSWORD", message: "Password is required" } });
+  }
+
   const normalizedEmail = email.toLowerCase().trim();
-  const isAdmin = normalizedEmail === "abhirajcsecec@gmail.com";
+
+  // Find account in database
+  const account = accountDatabase.find(u => u.email.toLowerCase() === normalizedEmail);
+  if (!account) {
+    return res.status(404).json({
+      success: false,
+      error: {
+        code: "USER_NOT_FOUND",
+        message: "No account found in database with this email. Please click 'Create Account' first.",
+      },
+    });
+  }
+
+  // Verify password against stored hash and salt
+  const computedHash = hashUserPassword(password, account.salt);
+  if (computedHash !== account.passwordHash) {
+    return res.status(401).json({
+      success: false,
+      error: {
+        code: "INVALID_PASSWORD",
+        message: "Incorrect password. Please verify your credentials and try again.",
+      },
+    });
+  }
+
+  account.lastLoginAt = new Date().toISOString();
+  saveAccountsToDb(accountDatabase);
+
+  const token = "cs_token_" + crypto.randomBytes(24).toString("hex");
+
+  console.log(`[CyberShield Database] User authenticated successfully from database: ${normalizedEmail} (${account.role})`);
+
   res.json({
     success: true,
     data: {
       user: {
-        id: "usr_" + Date.now(),
-        name: normalizedEmail.split("@")[0],
-        email: normalizedEmail,
-        role: isAdmin ? "Administrator" : "Analyst",
+        id: account.id,
+        name: account.name,
+        email: account.email,
+        role: account.role,
+        emailVerified: true,
       },
-      token: "cs_token_" + crypto.randomBytes(16).toString("hex"),
+      token,
     },
-    message: "Login successful",
+    message: "Authentication successful from database",
   });
 });
 
 app.post("/api/auth/register", (req, res) => {
-  const { name, email } = req.body;
-  const normalizedEmail = (email || "user@cybershield.ai").toLowerCase().trim();
+  const { name, email, password } = req.body;
+  if (!email || typeof email !== "string" || !email.includes("@")) {
+    return res.status(400).json({ success: false, error: { code: "INVALID_EMAIL", message: "Valid email address is required" } });
+  }
+  if (!password || typeof password !== "string" || password.length < 6) {
+    return res.status(400).json({ success: false, error: { code: "WEAK_PASSWORD", message: "Password must be at least 6 characters" } });
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Check if already registered in database
+  const existing = accountDatabase.find(u => u.email.toLowerCase() === normalizedEmail);
+  if (existing) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: "EMAIL_EXISTS",
+        message: "An account with this email is already registered in the database. Please sign in.",
+      },
+    });
+  }
+
   const isAdmin = normalizedEmail === "abhirajcsecec@gmail.com";
-  const newUser = { 
-    id: "usr_" + Date.now(), 
-    name: name || normalizedEmail.split("@")[0], 
-    email: normalizedEmail, 
-    role: isAdmin ? "Administrator" : "Analyst" 
+  const salt = crypto.randomBytes(16).toString("hex");
+  const passwordHash = hashUserPassword(password, salt);
+  const now = new Date().toISOString();
+
+  const newAccount: StoredAccount = {
+    id: "usr_" + Date.now() + "_" + crypto.randomBytes(4).toString("hex"),
+    name: (name && typeof name === "string" && name.trim()) ? name.trim() : normalizedEmail.split("@")[0],
+    email: normalizedEmail,
+    passwordHash,
+    salt,
+    role: isAdmin ? "Administrator" : "Analyst",
+    createdAt: now,
+    lastLoginAt: now,
   };
-  db.users.push(newUser);
+
+  accountDatabase.push(newAccount);
+  saveAccountsToDb(accountDatabase);
+
+  if (!db.users.find(u => u.email.toLowerCase() === normalizedEmail)) {
+    db.users.push({
+      id: newAccount.id,
+      name: newAccount.name,
+      email: newAccount.email,
+      role: newAccount.role,
+    });
+  }
+
+  const token = "cs_token_" + crypto.randomBytes(24).toString("hex");
+
+  console.log(`[CyberShield Database] Stored new account and password hash in database for: ${normalizedEmail}`);
+
   res.json({
     success: true,
-    data: { user: newUser, token: "cs_token_" + crypto.randomBytes(16).toString("hex") },
-    message: "Registration successful",
+    data: {
+      user: {
+        id: newAccount.id,
+        name: newAccount.name,
+        email: newAccount.email,
+        role: newAccount.role,
+        emailVerified: true,
+      },
+      token,
+    },
+    message: "Account created and authenticated in database successfully!",
   });
 });
 
@@ -805,10 +885,41 @@ app.get("/api/auth/me", (req, res) => {
   res.json({ success: true, data: { user: db.users[0] } });
 });
 
+function getRequestUserEmail(req: any): string | null {
+  const bodyEmail = (req.body?.userEmail as string)?.toLowerCase().trim();
+  if (bodyEmail && bodyEmail !== "anonymous" && bodyEmail !== "null" && bodyEmail !== "undefined" && bodyEmail.includes("@")) {
+    return bodyEmail;
+  }
+  const queryEmail = ((req.query?.userEmail || req.query?.email) as string)?.toLowerCase().trim();
+  if (queryEmail && queryEmail !== "anonymous" && queryEmail !== "null" && queryEmail !== "undefined" && queryEmail.includes("@")) {
+    return queryEmail;
+  }
+  const headerEmail = (req.headers["x-user-email"] as string)?.toLowerCase().trim();
+  if (headerEmail && headerEmail !== "anonymous" && headerEmail !== "null" && headerEmail !== "undefined" && headerEmail.includes("@")) {
+    return headerEmail;
+  }
+  const authHeader = (req.headers["authorization"] as string)?.trim();
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.substring(7).trim();
+    if (token.includes("@")) {
+      return token.toLowerCase();
+    }
+  }
+  return null;
+}
+
 // Dashboard Summary & Stats
 app.get(["/api/dashboard/summary", "/api/dashboard/stats"], (req, res) => {
-  const phishingThreats = db.phishingScans.filter(s => s.classification === 'PHISHING' || s.classification === 'SUSPICIOUS').length;
-  const malwareThreats = db.malwareScans.filter(m => m.malicious).length;
+  const userEmail = getRequestUserEmail(req);
+  const userPhishing = userEmail 
+    ? db.phishingScans.filter(s => s.userEmail.toLowerCase() === userEmail.toLowerCase())
+    : [];
+  const userMalware = userEmail 
+    ? db.malwareScans.filter(m => m.userEmail.toLowerCase() === userEmail.toLowerCase())
+    : [];
+
+  const phishingThreats = userPhishing.filter(s => s.classification === 'PHISHING' || s.classification === 'SUSPICIOUS').length;
+  const malwareThreats = userMalware.filter(m => m.malicious).length;
   const activeAnomalies = db.networkEvents.filter(n => n.anomalyScore > 60).length;
   const criticalAlerts = db.alerts.filter(a => !a.acknowledged && (a.severity === 'CRITICAL' || a.severity === 'HIGH')).length;
 
@@ -822,7 +933,7 @@ app.get(["/api/dashboard/summary", "/api/dashboard/stats"], (req, res) => {
   res.json({
     success: true,
     data: {
-      totalScans: db.phishingScans.length + db.malwareScans.length,
+      totalScans: userPhishing.length + userMalware.length,
       phishingThreats,
       malwareThreats,
       activeAnomalies,
@@ -1059,9 +1170,11 @@ app.post("/api/phishing/analyze", async (req, res) => {
       },
     };
 
+    const userEmail = getRequestUserEmail(req);
+
     const scanRecord = {
       id: "ph_" + Date.now(),
-      userEmail: "anonymous@user.com",
+      userEmail: userEmail || "anonymous",
       url,
       riskScore: combinedScore,
       classification: finalClassification,
@@ -1082,21 +1195,24 @@ app.post("/api/phishing/analyze", async (req, res) => {
       dualEngine: dualEngineData,
     };
 
-    db.phishingScans.unshift(scanRecord);
+    // ONLY store in persistent history if scanned by an authenticated signed-in user
+    if (userEmail) {
+      db.phishingScans.unshift(scanRecord);
 
-    // Trigger alert if high risk
-    if (finalClassification === 'PHISHING' || finalClassification === 'SUSPICIOUS') {
-      db.alerts.unshift({
-        id: "alt_" + Date.now(),
-        eventType: "PHISHING_DETECTED",
-        severity: finalClassification === 'PHISHING' ? "CRITICAL" : "HIGH",
-        title: `${finalClassification} URL Detected (Dual-Engine: ${agreement})`,
-        message: `URL ${url} reached combined risk score ${combinedScore}/100 across PhishGuard & CyberShield engines.`,
-        source: "Two-Way PhishGuard + CyberShield Engine",
-        acknowledged: false,
-        webhookStatus: db.settings.discordWebhookUrl ? "sent" : "disabled",
-        createdAt: new Date().toISOString(),
-      });
+      // Trigger alert if high risk for authenticated user
+      if (finalClassification === 'PHISHING' || finalClassification === 'SUSPICIOUS') {
+        db.alerts.unshift({
+          id: "alt_" + Date.now(),
+          eventType: "PHISHING_DETECTED",
+          severity: finalClassification === 'PHISHING' ? "CRITICAL" : "HIGH",
+          title: `${finalClassification} URL Detected (Dual-Engine: ${agreement})`,
+          message: `URL ${url} reached combined risk score ${combinedScore}/100 across PhishGuard & CyberShield engines.`,
+          source: "Two-Way PhishGuard + CyberShield Engine",
+          acknowledged: false,
+          webhookStatus: db.settings.discordWebhookUrl ? "sent" : "disabled",
+          createdAt: new Date().toISOString(),
+        });
+      }
     }
 
     res.json({ success: true, data: scanRecord, message: "URL analyzed successfully with Two-Way Checking" });
@@ -1106,8 +1222,13 @@ app.post("/api/phishing/analyze", async (req, res) => {
 });
 
 app.get("/api/phishing/history", (req, res) => {
-  const userEmail = "anonymous@user.com";
-  const filteredData = db.phishingScans.filter(s => s.userEmail === userEmail);
+  const userEmail = getRequestUserEmail(req);
+  if (!userEmail) {
+    // Unauthenticated/guest visitors have NO persistent history.
+    // Scans are only shown until refreshed.
+    return res.json({ success: true, data: [] });
+  }
+  const filteredData = db.phishingScans.filter(s => s.userEmail.toLowerCase() === userEmail.toLowerCase());
   res.json({ success: true, data: filteredData });
 });
 
@@ -1278,16 +1399,24 @@ app.post("/api/malware/scan", async (req, res) => {
     extractedStrings: extractedStrings.length > 0 ? extractedStrings : (malicious ? ["http://malicious-c2.com/payload"] : []),
   };
 
+  const userEmail = getRequestUserEmail(req);
+
   const scanRecord = {
     id: "mw_" + Date.now(),
-    userEmail: "anonymous@user.com",
+    userEmail: userEmail || "anonymous",
     filename: name,
+    fileName: name,
     sha256: computedHash,
+    fileHash: computedHash,
     scanStatus: "completed" as const,
+    status: malicious ? "MALICIOUS" : "SAFE",
     malicious,
     detectionCount,
+    enginesDetected: detectionCount,
     totalEngines,
+    enginesTotal: totalEngines,
     threatName,
+    threatLabel: malicious ? (threatName || "Trojan.Generic.Heuristic") : "Clean",
     hfimRgb: {
       r: rColor,
       g: gColor,
@@ -1299,28 +1428,34 @@ app.post("/api/malware/scan", async (req, res) => {
     scannedAt: new Date().toISOString(),
   };
 
-  db.malwareScans.unshift(scanRecord);
+  // ONLY store in persistent db if scanned by authenticated user
+  if (userEmail) {
+    db.malwareScans.unshift(scanRecord);
 
-  if (malicious) {
-    db.alerts.unshift({
-      id: "alt_" + Date.now(),
-      eventType: "MALWARE_DETECTED",
-      severity: "CRITICAL",
-      title: "Malware Signature Detected",
-      message: `File ${name} (SHA256: ${computedHash.substring(0, 12)}...) flagged by ${detectionCount}/${totalEngines} antivirus engines.`,
-      source: "Malware Scanner",
-      acknowledged: false,
-      webhookStatus: db.settings.discordWebhookUrl ? "sent" : "disabled",
-      createdAt: new Date().toISOString(),
-    });
+    if (malicious) {
+      db.alerts.unshift({
+        id: "alt_" + Date.now(),
+        eventType: "MALWARE_DETECTED",
+        severity: "CRITICAL",
+        title: "Malware Signature Detected",
+        message: `File ${name} (SHA256: ${computedHash.substring(0, 12)}...) flagged by ${detectionCount}/${totalEngines} antivirus engines.`,
+        source: "Malware Scanner",
+        acknowledged: false,
+        webhookStatus: db.settings.discordWebhookUrl ? "sent" : "disabled",
+        createdAt: new Date().toISOString(),
+      });
+    }
   }
 
   res.json({ success: true, data: scanRecord, message: "Malware scan completed" });
 });
 
 app.get("/api/malware/history", (req, res) => {
-  const userEmail = "anonymous@user.com";
-  const filteredData = db.malwareScans.filter(s => s.userEmail === userEmail);
+  const userEmail = getRequestUserEmail(req);
+  if (!userEmail) {
+    return res.json({ success: true, data: [] });
+  }
+  const filteredData = db.malwareScans.filter(s => s.userEmail.toLowerCase() === userEmail.toLowerCase());
   res.json({ success: true, data: filteredData });
 });
 
@@ -1670,16 +1805,22 @@ app.post("/api/quick-scan", async (req, res) => {
       }
     }
 
-    // Record into malware scans
+    // Record into malware scans if authenticated
+    const userEmail = getRequestUserEmail(req);
     const malwareRecord = {
       id: "mw_" + Date.now(),
-      userEmail: "anonymous@user.com",
+      userEmail: userEmail || "anonymous",
       filename: `quick_scan_${hash.substring(0, 10)}.bin`,
+      fileName: `quick_scan_${hash.substring(0, 10)}.bin`,
       sha256: isSha256 ? hash : (hash + "0".repeat(64 - hash.length)),
+      fileHash: isSha256 ? hash : (hash + "0".repeat(64 - hash.length)),
       scanStatus: "completed" as const,
+      status: malicious ? "MALICIOUS" : "SAFE",
       malicious,
       detectionCount,
+      enginesDetected: detectionCount,
       totalEngines,
+      enginesTotal: totalEngines,
       threatName: malicious ? threatName : undefined,
       hfimRgb: {
         r: malicious ? "from-red-600" : "from-emerald-600",
@@ -1688,20 +1829,22 @@ app.post("/api/quick-scan", async (req, res) => {
       },
       scannedAt: new Date().toISOString(),
     };
-    db.malwareScans.unshift(malwareRecord);
+    if (userEmail) {
+      db.malwareScans.unshift(malwareRecord);
 
-    if (malicious) {
-      db.alerts.unshift({
-        id: "alt_" + Date.now(),
-        eventType: "MALWARE_HASH_FLAGGED",
-        severity: threatLevel === 'CRITICAL' ? "CRITICAL" : "HIGH",
-        title: `Malware Hash Detected in Quick Scan`,
-        message: `Hash ${hash.substring(0, 16)}... flagged by ${detectionCount}/${totalEngines} engines (${threatName || 'Malware'}).`,
-        source: "Global Quick Scan Engine",
-        acknowledged: false,
-        webhookStatus: db.settings.discordWebhookUrl ? "sent" : "disabled",
-        createdAt: new Date().toISOString(),
-      });
+      if (malicious) {
+        db.alerts.unshift({
+          id: "alt_" + Date.now(),
+          eventType: "MALWARE_HASH_FLAGGED",
+          severity: threatLevel === 'CRITICAL' ? "CRITICAL" : "HIGH",
+          title: `Malware Hash Detected in Quick Scan`,
+          message: `Hash ${hash.substring(0, 16)}... flagged by ${detectionCount}/${totalEngines} engines (${threatName || 'Malware'}).`,
+          source: "Global Quick Scan Engine",
+          acknowledged: false,
+          webhookStatus: db.settings.discordWebhookUrl ? "sent" : "disabled",
+          createdAt: new Date().toISOString(),
+        });
+      }
     }
 
     return res.json({
@@ -1824,9 +1967,11 @@ app.post("/api/quick-scan", async (req, res) => {
   }
 
   // Save to phishing scans
+  // Save to phishing scans if authenticated
+  const userEmail = getRequestUserEmail(req);
   const phishingRecord = {
     id: "ph_" + Date.now(),
-    userEmail: "anonymous@user.com",
+    userEmail: userEmail || "anonymous",
     url: raw,
     riskScore: score,
     classification,
@@ -1845,20 +1990,22 @@ app.post("/api/quick-scan", async (req, res) => {
     modelVersion: "2.1.0-rf-quick",
     scannedAt: new Date().toISOString(),
   };
-  db.phishingScans.unshift(phishingRecord);
+  if (userEmail) {
+    db.phishingScans.unshift(phishingRecord);
 
-  if (classification === 'PHISHING' || classification === 'SUSPICIOUS') {
-    db.alerts.unshift({
-      id: "alt_" + Date.now(),
-      eventType: "QUICK_SCAN_PHISH_ALERT",
-      severity: classification === 'PHISHING' ? "CRITICAL" : "HIGH",
-      title: `${classification} Target Detected in Quick Scan`,
-      message: `Entity ${raw.substring(0, 32)}... scored ${score}/100 threat rating.`,
-      source: "Global Quick Scan Engine",
-      acknowledged: false,
-      webhookStatus: db.settings.discordWebhookUrl ? "sent" : "disabled",
-      createdAt: new Date().toISOString(),
-    });
+    if (classification === 'PHISHING' || classification === 'SUSPICIOUS') {
+      db.alerts.unshift({
+        id: "alt_" + Date.now(),
+        eventType: "QUICK_SCAN_PHISH_ALERT",
+        severity: classification === 'PHISHING' ? "CRITICAL" : "HIGH",
+        title: `${classification} Target Detected in Quick Scan`,
+        message: `Entity ${raw.substring(0, 32)}... scored ${score}/100 threat rating.`,
+        source: "Global Quick Scan Engine",
+        acknowledged: false,
+        webhookStatus: db.settings.discordWebhookUrl ? "sent" : "disabled",
+        createdAt: new Date().toISOString(),
+      });
+    }
   }
 
   return res.json({

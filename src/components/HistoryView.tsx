@@ -1,20 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { FileText,  ShieldAlert, Bug, RefreshCw } from "lucide-react";
+import { FileText,  ShieldAlert, Bug, RefreshCw, Lock } from "lucide-react";
 import { PhishingScan, MalwareScan } from "../types";
 import { fetchPhishingHistory, fetchMalwareHistory } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 export default function HistoryView() {
+  const { user } = useAuth();
   const [phishingHistory, setPhishingHistory] = useState<PhishingScan[]>([]);
   const [malwareHistory, setMalwareHistory] = useState<MalwareScan[]>([]);
   const [activeTab, setActiveTab] = useState<'phishing' | 'malware'>('phishing');
   const [loading, setLoading] = useState(false);
 
   const loadData = async () => {
+    if (!user?.email) {
+      setPhishingHistory([]);
+      setMalwareHistory([]);
+      return;
+    }
     setLoading(true);
     try {
       const [phish, mal] = await Promise.all([
-        fetchPhishingHistory(),
-        fetchMalwareHistory()
+        fetchPhishingHistory(user.email),
+        fetchMalwareHistory(user.email)
       ]);
       setPhishingHistory(phish);
       setMalwareHistory(mal);
@@ -27,7 +34,7 @@ export default function HistoryView() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [user]);
 
   return (
     <div className="space-y-6">
@@ -38,13 +45,15 @@ export default function HistoryView() {
             <span>Audit & Scan History</span>
           </h1>
           <p className="text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm mt-1">
-            Historical logs of all phishing and malware analyses.
+            {user?.email 
+              ? `Personal audit logs for ${user.email}.`
+              : "Historical audit logs of phishing and malware analyses (sign in required to view)."}
           </p>
         </div>
 
         <button 
           onClick={loadData}
-          disabled={loading}
+          disabled={loading || !user}
           className="flex items-center justify-center space-x-2 text-[10px] font-mono text-zinc-600 dark:text-zinc-400 px-3 py-2 sm:py-1.5 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:bg-zinc-800 uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer w-full sm:w-auto"
         >
           <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
@@ -53,6 +62,18 @@ export default function HistoryView() {
       </div>
 
       <div className="p-4 sm:p-6 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 space-y-4">
+        {!user && (
+          <div className="p-3 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-mono flex items-center space-x-2">
+            <Lock size={14} className="shrink-0" />
+            <span>Guest Mode: Persistent scan history is only saved for signed-in accounts. Guest scans reset upon refreshing.</span>
+          </div>
+        )}
+        {user?.email && (
+          <div className="p-3 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono flex items-center justify-between">
+            <span>Audit logs scoped to account: <strong>{user.email}</strong></span>
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="flex flex-wrap gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-4">
           <button

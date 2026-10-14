@@ -150,7 +150,7 @@ export default function SettingsView({ isDarkMode = true, onToggleTheme }: Setti
             <span>Settings & Identity</span>
           </h1>
           <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
-            Manage credentials, email OTP verification, security roles, system preferences, and API access credentials.
+            Manage credentials, Firestore profile synchronization, security roles, system preferences, and API access credentials.
           </p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -191,7 +191,7 @@ export default function SettingsView({ isDarkMode = true, onToggleTheme }: Setti
               </span>
             ) : user ? (
               <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-950/80 text-blue-400 border border-blue-800">
-                NORMAL USER
+                SOC OPERATOR
               </span>
             ) : (
               <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
@@ -214,45 +214,28 @@ export default function SettingsView({ isDarkMode = true, onToggleTheme }: Setti
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{user?.displayName || (user ? user.email?.split("@")[0] : "Not Signed In")}</p>
-                  <p className="text-[11px] text-zinc-600 dark:text-zinc-400 truncate">{user?.email || "Sign in using Google or Email/Password + OTP"}</p>
+                  <p className="text-[11px] text-zinc-600 dark:text-zinc-400 truncate">{user?.email || "Sign in using Google or Email & Password"}</p>
                 </div>
               </div>
             </div>
 
-            {/* Email Verification */}
+            {/* Firestore Synchronization Status */}
             <div>
-              <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Email Verification & OTP</label>
+              <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Database & Verification</label>
               <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-900 rounded">
                 {user ? (
-                  emailVerified ? (
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-emerald-400">[Verified] Email & OTP Active</span>
-                      <span className="text-[10px] text-emerald-500/80 font-mono">Active</span>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-emerald-400 block">[Synced] Firestore Profile Active</span>
+                      <span className="text-[10px] text-zinc-500 font-sans block mt-0.5">Stored in /users/{user.uid} with instant authentication</span>
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <span className="text-xs font-bold text-amber-400 block">[Pending] Verification Required</span>
-                      <div className="flex gap-2 pt-1">
-                        <button
-                          onClick={handleResend}
-                          disabled={resending}
-                          className="flex-1 px-2.5 py-1.5 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded text-[11px] font-sans text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer"
-                        >
-                          {resending ? "Sending..." : "Send OTP to Email"}
-                        </button>
-                        <button
-                          onClick={handleCheckStatus}
-                          disabled={checking}
-                          className="flex-1 px-2.5 py-1.5 bg-emerald-950 hover:bg-emerald-900 border border-emerald-800 rounded text-[11px] font-sans text-emerald-300 transition-colors cursor-pointer"
-                        >
-                          {checking ? "Checking..." : "Refresh Status"}
-                        </button>
-                      </div>
-                    </div>
-                  )
+                    <span className="text-[10px] text-emerald-400 font-mono px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-800">
+                      Active
+                    </span>
+                  </div>
                 ) : (
                   <div className="flex items-center justify-between text-xs text-zinc-500">
-                    <span>Sign in to manage email verification</span>
+                    <span>Sign in to persist your profile in Firestore</span>
                     <button
                       onClick={() => setAuthModalOpen(true)}
                       className="text-emerald-400 underline font-sans text-[11px] cursor-pointer"
@@ -260,9 +243,6 @@ export default function SettingsView({ isDarkMode = true, onToggleTheme }: Setti
                       Sign In
                     </button>
                   </div>
-                )}
-                {verificationFeedback && (
-                  <p className="text-[10px] font-sans text-emerald-400 mt-2">{verificationFeedback}</p>
                 )}
               </div>
             </div>

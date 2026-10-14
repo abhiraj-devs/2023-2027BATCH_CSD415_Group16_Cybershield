@@ -1,0 +1,42 @@
+[
+  {
+    "id": "usr_admin_1",
+    "name": "CyberShield Admin",
+    "email": "abhirajcsecec@gmail.com",
+    "passwordHash": "1f2b16477636664de6eadb1eaefc1ab809e37c6b1dfe219068b7e9e336f36722b1492737232a02b982e4f57e22b048d73af4bc3416266c1ec966966918becc83",
+    "salt": "55f1eb2d8e684052c5187743ac6e9cba",
+    "role": "Administrator",
+    "createdAt": "2026-10-13T17:18:47.217Z",
+    "lastLoginAt": "2026-10-13T17:24:10.718Z"
+  },
+  {
+    "id": "usr_analyst_1",
+    "name": "SOC Analyst",
+    "email": "analyst@cybershield.ai",
+    "passwordHash": "1f2b16477636664de6eadb1eaefc1ab809e37c6b1dfe219068b7e9e336f36722b1492737232a02b982e4f57e22b048d73af4bc3416266c1ec966966918becc83",
+    "salt": "55f1eb2d8e684052c5187743ac6e9cba",
+    "role": "Administrator",
+    "createdAt": "2026-10-13T17:18:47.217Z",
+    "lastLoginAt": "2026-10-13T17:18:47.217Z"
+  },
+  {
+    "id": "usr_1791911935841_147fdfc8",
+    "name": "Alex Rivers",
+    "email": "alex.rivers@cybershield.ai",
+    "passwordHash": "94eb2de922ea9c7c8d7a6290dec84248dae9d4b8eaeb8aeec07ae589fd567ed73aedfc49c1a661f65d8d1256d277737294ddb8905f9c518f6d8825f5e10f6bd6",
+    "salt": "ecdcb992ba8318035157c9b2f0e6ab14",
+    "role": "Analyst",
+    "createdAt": "2026-10-13T17:18:55.841Z",
+    "lastLoginAt": "2026-10-13T17:19:00.584Z"
+  },
+  {
+    "id": "usr_1791912259934_81f6cb08",
+    "name": "SecOps Member",
+    "email": "secops@cybershield.ai",
+    "passwordHash": "61db73f13670e8da808b42d477e7d3f4d51b8bafe30782016ed959dc00664ab6cc2ab26daf728cadcaedc4309dadafe1908385955404dac30f4472d375f1e92d",
+    "salt": "4486e3a3def55c433b1119126f40c924",
+    "role": "Analyst",
+    "createdAt": "2026-10-13T17:24:19.934Z",
+    "lastLoginAt": "2026-10-13T17:24:24.341Z"
+  }
+]
