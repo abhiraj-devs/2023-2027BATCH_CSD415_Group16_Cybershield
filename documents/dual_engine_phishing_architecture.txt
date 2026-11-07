@@ -1,0 +1,172 @@
+CYBERSHIELD AI: TWO-WAY DUAL-ENGINE PHISHING LINK DETECTION ARCHITECTURE
+=========================================================================================
+Document Version: 2.1.0
+Target Platform: CyberShield AI Security Operations Center (SOC)
+Author: Group 16, Department of Computer Engineering, College of Engineering Chengannur
+Date: October 2026
+
+-----------------------------------------------------------------------------------------
+1. EXECUTIVE SUMMARY & PROBLEM STATEMENT
+-----------------------------------------------------------------------------------------
+Traditional phishing URL detection systems suffer from a crippling trade-off:
+- Pure Heuristic / Static Rule Engines: Fast and lightweight, but prone to high false-positive rates on complex legitimate URLs (e.g., OAuth tokens, cloud storage redirects).
+- Single Black-Box Cloud Machine Learning Models: High statistical accuracy on known datasets, but vulnerable to latency spikes, service downtime, and zero-day evasions (obfuscated, freshly registered domains).
+
+To resolve this challenge, CyberShield AI implements a synchronous-asynchronous "Two-Way Dual-Engine Cross-Verification Architecture":
+1. Engine 1 (PhishGuard Cloud AI): A pre-trained machine learning model trained on a verified 235,000 URL corpus.
+2. Engine 2 (CyberShield Deep Lexical & Structural Engine): A local, high-speed 15-feature syntactic and information-theoretic analyzer (< 12ms latency).
+3. Two-Way Consensus Decision Matrix: Mathematical cross-examination eliminating blind spots.
+4. Explainable AI (Google Gemini 3.6 Flash): Generates natural-language SOC analyst rationale within a strict 2.5-second timeout window.
+
+
+-----------------------------------------------------------------------------------------
+2. ARCHITECTURAL WORKFLOW
+-----------------------------------------------------------------------------------------
+When a target URL is analyzed via POST /api/phishing/analyze:
+
+                 +--------------------------------------+
+                 |          Target URL Input            |
+                 +------------------+-------------------+
+                                    |
+                 +------------------+-------------------+
+                 | Parse & Validate URL Protocol & Host |
+                 +------------------+-------------------+
+                                    |
+           +------------------------+------------------------+
+           | (Concurrent Promise Execution)                  |
+           v                                                 v
++-------------------------------+       +------------------------------------+
+|           ENGINE 1            |       |              ENGINE 2              |
+|   PhishGuard Cloud Model      |       |  CyberShield Deep Lexical Analyzer |
+| (Render Cloud API, 235k Data) |       |  (15 Structural & Entropy Rules)   |
++---------------+---------------+       +-----------------+------------------+
+                |                                         |
+                | Probability: 0% - 100%                  | Risk Score: 2 - 100
+                | Verdict: IsPhishing (T/F)               | Verdict: Safe/Sus/Phish
+                |                                         |
+                +-------------------+---------------------+
+                                    |
+                                    v
+                 +--------------------------------------+
+                 |      Two-Way Consensus Matrix        |
+                 |     (Cross-Verification Logic)       |
+                 +------------------+-------------------+
+                                    |
+           +------------------------+------------------------+
+           v                                                 v
+  [ FULL AGREEMENT ]                                [ DISCORDANT CHECK ]
+Both Agree Phishing (Score >= 85)               Engines Disagree (Score: 45 - 75)
+or Both Agree Safe (Score <= 20)                Flagged for Human SOC Review
+           +------------------------+------------------------+
+                                    |
+                                    v
+                 +--------------------------------------+
+                 |   Gemini 3.6 Flash Explainable AI    |
+                 |     (2-Sentence SOC Rationale)       |
+                 +------------------+-------------------+
+                                    |
+                                    v
+                 +--------------------------------------+
+                 | JSON Response & SOC Dashboard Render |
+                 +--------------------------------------+
+
+
+-----------------------------------------------------------------------------------------
+3. ENGINE 1 SPECIFICATION: PHISHGUARD AI CLOUD MODEL
+-----------------------------------------------------------------------------------------
+- Hosting Endpoint: https://phishguard-api-pbjw.onrender.com/api/predict
+- Training Corpus: 235,000+ verified URLs (PhishTank, OpenPhish, Tranco Top 1M, Alexa Top Domains).
+- Model Family: Supervised Ensemble Tree Classifier (Random Forest / Gradient Boosted Trees).
+- Primary Extracted Attributes (Received in live API payload):
+  * DomainLength: Total character length of the base domain.
+  * IsDomainIP: Binary indicator (1 if the host is a raw IPv4/IPv6, 0 otherwise).
+  * IsHTTPS: Transport security indicator (1 for HTTPS, 0 for insecure HTTP).
+  * NoOfSubDomain: Count of dot-separated subdomain segments.
+- Output Signature:
+  * is_phishing: boolean (true = malicious, false = legitimate)
+  * phishing_probability: float (0.0% to 100.0%)
+  * features: dictionary of extracted features
+- Resilience & Fault-Tolerance:
+  * Wrapped in an axios request with a 3,500ms timeout ceiling.
+  * If the cloud instance is spinning down or unreachable, the system automatically falls back to local heuristic pre-scoring so the SOC interface remains 100% operational.
+
+
+-----------------------------------------------------------------------------------------
+4. ENGINE 2 SPECIFICATION: CYBERSHIELD DEEP LEXICAL & STRUCTURAL ANALYZER
+-----------------------------------------------------------------------------------------
+- Execution Environment: Node.js server-side (< 12ms latency) with corresponding Python training reference (features.py / train_model.py).
+- Reference Model: Scikit-learn RandomForestClassifier(n_estimators=100, max_depth=10, class_weight="balanced").
+- Algorithmic Scoring Rules:
+  * Base Score: 10
+  * URL Length: If length > 75 characters -> +15 penalty.
+  * Subdomain / Dot Count: If dots > 3 -> +20 penalty.
+  * Hyphen Count: If hyphens in host > 2 -> +15 penalty (typosquatting indicator).
+  * Transport Security: If protocol is NOT HTTPS -> +25 penalty.
+  * Raw IP Hostname: If host matches IPv4 regex -> +30 penalty.
+  * High-Risk Phishing Keywords:
+    Keywords: ["login", "verify", "verification", "account", "update", "secure",
+               "password", "bank", "wallet", "payment", "confirm", "signin",
+               "credential", "security", "apple", "netflix", "paypal"]
+    Penalty: (Keyword Occurrences) * 18
+  * Special Characters Density: If count of [@, _, ?, &, =, %] > 5 -> +10 penalty.
+  * Shannon Entropy:
+    H(X) = - SUM [ P(x_i) * log2(P(x_i)) ]
+    Detects high-entropy, randomized Algorithmically Generated Domains (DGA) and obfuscated strings.
+- Clamping & Confidence:
+  * Raw score clamped to [2, 100].
+  * Confidence = 0.85 + (|Score - 50| / 250), capped at 0.99.
+  * Classification:
+    - Score >= 70: PHISHING
+    - Score 35 - 69: SUSPICIOUS
+    - Score < 35: SAFE
+
+
+-----------------------------------------------------------------------------------------
+5. TWO-WAY CROSS-VERIFICATION & CONSENSUS MATRIX
+-----------------------------------------------------------------------------------------
+The combined threat rating is mathematically evaluated as:
+CombinedScore = round((Engine1Probability * 0.5) + (Engine2Score * 0.5))
+
+The decision matrix handles three distinct operational states:
+
+Case A: Full Consensus - Malicious (e1Flag == true AND e2Flag == true)
+  * Condition: Engine 1 probability >= 65% and Engine 2 score >= 65.
+  * Agreement Status: FULL_AGREEMENT
+  * Final Verdict: CONFIRMED_PHISHING
+  * Combined Score: max(CombinedScore, 85)
+  * System Action: Immediate perimeter blocking; automated security alert dispatched to incident queue.
+
+Case B: Full Consensus - Safe (e1Flag == false AND e2Flag == false)
+  * Condition: Both Engine 1 and Engine 2 confirm clean attributes.
+  * Agreement Status: FULL_AGREEMENT
+  * Final Verdict: VERIFIED_SAFE
+  * Combined Score: min(CombinedScore, 20)
+  * System Action: Access allowed; trusted reputation cached.
+
+Case C: Discordant Check - Disagreement (One engine flags, the other clears)
+  * Condition: Engine 1 flags while Engine 2 does not, or vice versa.
+  * Agreement Status: DISAGREEMENT
+  * Final Verdict: SUSPICIOUS
+  * Combined Score: Clamped between 45 and 75.
+  * System Action: Threat quarantine; elevated alert dispatched to SOC analyst queue for manual inspection.
+
+
+-----------------------------------------------------------------------------------------
+6. EXPLAINABLE AI (XAI) LAYER: GOOGLE GEMINI 3.6 FLASH
+-----------------------------------------------------------------------------------------
+To ensure complete transparency and prevent black-box opacity:
+- Model: gemini-3.6-flash
+- Response Budget: Dispatched concurrently with a 2,500ms timeout race.
+- Role: Translates numerical metrics, Shannon entropy values, and consensus verdicts into a concise 2-sentence SOC analyst explanation.
+- Example Output:
+  "Dual-engine consensus identified deceptive brand impersonation targeting PayPal in the subdomain structure, aggravated by an unencrypted HTTP protocol and 3 credential-harvesting tokens. Immediate perimeter blocking is strongly enforced."
+
+
+-----------------------------------------------------------------------------------------
+7. KEY ADVANTAGES OF THE TWO-WAY DUAL-ENGINE ARCHITECTURE
+-----------------------------------------------------------------------------------------
+1. Elimination of Single Points of Failure: If the cloud API experiences network latency, Engine 2 guarantees uninterrupted scanning.
+2. Drastic Reduction in False Positives: Complex legitimate URLs are cleared by Engine 1's 235k training dataset even if lexical length is high.
+3. Rapid Zero-Day Protection: Brand-new phishing URLs not yet present in global blacklists are flagged instantly by Engine 2's syntactic heuristics.
+4. Regulatory & Audit Readiness: Complete telemetry logging in Cloud Firestore with dual-engine feature breakdowns for forensic investigation.
+=========================================================================================

@@ -1,0 +1,71 @@
+CYBERSHIELD AI - MODULE 1: TWO-WAY DUAL-ENGINE PHISHING LINK DETECTION
+=========================================================================================
+Module ID: MOD-PHISH-01
+Component Path: /src/components/PhishingView.tsx
+Backend Routes:
+  - POST /api/phishing/analyze
+  - GET  /api/phishing/history
+  - GET  /api/phishing/engine-status
+  - GET  /api/phishing/crowdsourced
+  - POST /api/phishing/crowdsourced/:id/verify
+  - POST /api/phishing/crowdsourced/:id/discard
+
+-----------------------------------------------------------------------------------------
+1. OVERVIEW & PURPOSE
+-----------------------------------------------------------------------------------------
+The Phishing Link Detection Module analyzes suspicious web links, credential-harvesting
+portals, and lookalike domains. It uses a synchronized two-way architecture combining an
+external cloud machine learning model (trained on 235,000 verified URLs) and a local
+15-feature lexical and entropy heuristic engine. It cross-examines outputs using a consensus
+matrix and generates human-readable forensic explanations via Google Gemini 3.6 Flash.
+
+-----------------------------------------------------------------------------------------
+2. KEY FEATURES & CAPABILITIES
+-----------------------------------------------------------------------------------------
+1. Dual-Engine Architecture:
+   - Engine 1 (PhishGuard Cloud AI): Querying a remote ML model on Render, returning exact
+     phishing probability (0-100%) and key domain features.
+   - Engine 2 (CyberShield Heuristic Engine): Local sub-12ms syntactic scoring evaluating
+     length, subdomains, hyphens, protocol, raw IP address, and high-risk keywords.
+2. Two-Way Cross-Verification Matrix:
+   - Computes weighted combined risk: 0.5 * Engine1 + 0.5 * Engine2.
+   - Identifies FULL_AGREEMENT (both clean or both malicious) vs. DISCORDANT (elevated triage).
+3. Crowdsourced Threat Review Queue:
+   - Allows users and analysts to report suspicious URLs.
+   - Analysts can verify or discard pending community-reported threat submissions.
+4. Explainable AI Insights:
+   - Integrates Gemini 3.6 Flash to provide a 2-sentence SOC analyst assessment.
+5. Persistent & Guest Session Separation:
+   - Authenticated users have scans permanently stored in Cloud Firestore.
+   - Guest visitors have scans isolated to active memory session only.
+
+-----------------------------------------------------------------------------------------
+3. DATA MODELS & STRUCTURES
+-----------------------------------------------------------------------------------------
+PhishingScan Object:
+{
+  id: string,
+  userEmail: string,
+  url: string,
+  riskScore: number (0 - 100),
+  classification: "SAFE" | "SUSPICIOUS" | "PHISHING",
+  confidence: number (0.0 - 1.0),
+  featureSummary: {
+    urlLength: number,
+    hostnameLength: number,
+    dotsCount: number,
+    hyphensCount: number,
+    hasHttps: boolean,
+    isIpAddress: boolean,
+    suspiciousKeywordsCount: number,
+    specialCharsCount: number
+  },
+  aiExplanation: string,
+  dualEngine: {
+    engine1: { isPhishing, probability, features, status, latencyMs },
+    engine2: { riskScore, classification, confidence, featureSummary },
+    consensus: { agreement, finalVerdict, combinedScore, description }
+  },
+  scannedAt: ISO timestamp string
+}
+=========================================================================================

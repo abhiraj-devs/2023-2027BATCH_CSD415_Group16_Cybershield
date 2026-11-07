@@ -1,36 +1,15 @@
-import tailwindcss from '@tailwindcss/vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
-import fs from 'fs';
-import {defineConfig} from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 
-export default defineConfig(() => {
-  return {
-    plugins: [
-      {
-        name: 'firebase-config-fallback',
-        enforce: 'pre',
-        resolveId(source) {
-          if (source.includes('firebase-applet-config.json') && !fs.existsSync(path.resolve(__dirname, 'firebase-applet-config.json'))) {
-            return path.resolve(__dirname, 'src/services/fallback-firebase-config.json');
-          }
-          return null;
-        }
-      },
-      react(),
-      tailwindcss()
-    ],
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, '.'),
-      },
-    },
-    server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
-      hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
-      watch: process.env.DISABLE_HMR === 'true' ? null : {},
-    },
-  };
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    tailwindcss(),
+  ],
+  server: {
+    port: 3000,
+    host: true,
+  },
 });

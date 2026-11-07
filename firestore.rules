@@ -36,9 +36,9 @@ service cloud.firestore {
 
     // Admins Collection
     match /admins/{adminId} {
-      allow get: if isVerified() && (isOwner(adminId) || isAdmin());
+      allow get: if isSignedIn() && (isOwner(adminId) || isAdmin());
       allow list: if isAdmin();
-      allow create, update: if isVerified() && (
+      allow create, update: if isSignedIn() && (
         (request.auth.token.email == 'abhirajcsecec@gmail.com' && isOwner(adminId)) ||
         isAdmin()
       );

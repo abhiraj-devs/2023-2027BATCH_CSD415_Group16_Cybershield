@@ -1,288 +1,243 @@
-import React, { useState, useEffect } from 'react';
-import { Settings, Menu, X, Bell, Moon, Sun, Zap } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import AuthModal from './AuthModal';
-import QuickScanModal from './QuickScanModal';
-import CyberShieldLogo from './CyberShieldLogo';
+import React, { useState } from "react";
+import { 
+  ShieldAlert, 
+  Layers, 
+  Bug, 
+  Activity, 
+  Scan, 
+  Globe, 
+  Bell, 
+  FileText, 
+  Settings, 
+  Sun, 
+  Moon, 
+  Search, 
+  Menu, 
+  X, 
+  User as UserIcon,
+  Radio,
+  ExternalLink
+} from "lucide-react";
+import CyberShieldLogo from "./CyberShieldLogo";
+import AuthModal from "./AuthModal";
+import { useAuth } from "../context/AuthContext";
 
 interface LayoutProps {
   children: React.ReactNode;
   activeTab: string;
   setActiveTab: (tab: string) => void;
   systemStatus: string;
-  criticalAlertsCount?: number;
-  isDarkMode?: boolean;
-  toggleTheme?: () => void;
-  searchQuery?: string;
-  setSearchQuery?: (q: string) => void;
-  onLogout?: () => void;
-  onRunAudit?: () => void;
-  onClearHistory?: () => void;
+  criticalAlertsCount: number;
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  onLogout: () => void;
 }
 
-export default function Layout({ 
-  children, 
-  activeTab, 
-  setActiveTab, 
+export default function Layout({
+  children,
+  activeTab,
+  setActiveTab,
+  systemStatus,
   criticalAlertsCount,
   isDarkMode,
   toggleTheme,
+  searchQuery,
+  setSearchQuery,
 }: LayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [internalSearchQuery, setInternalSearchQuery] = useState('');
+  const { user, isAdmin } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [quickScanOpen, setQuickScanOpen] = useState(false);
-  const { user, isAdmin, emailVerified } = useAuth();
 
-  // Global keyboard shortcut & event to open Quick Scan from ANY view
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setQuickScanOpen((prev) => !prev);
-      }
-    };
-    const handleCustomOpen = () => setQuickScanOpen(true);
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('open-quick-scan', handleCustomOpen);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('open-quick-scan', handleCustomOpen);
-    };
-  }, []);
-
-  const searchQuery = internalSearchQuery;
-  const setSearchQuery = setInternalSearchQuery;
-
-  const navItems: { id: string; label: string; badge?: string }[] = [
-    { id: 'dashboard', label: 'SOC Dashboard' },
-    { id: 'phishing', label: 'Phishing Detection' },
-    { id: 'malware', label: 'Malware Forensics' },
-    { id: 'network', label: 'Network Telemetry' },
-    { id: 'threatIntel', label: 'Threat Intelligence' },
-    { id: 'alerts', label: 'Security Alerts' },
+  const navItems = [
+    { id: "dashboard", label: "SOC Dashboard", icon: ShieldAlert, tourId: "nav-dashboard" },
+    { id: "phishing", label: "Phishing Detection", icon: Layers, badge: "Dual-Engine", tourId: "nav-phishing" },
+    { id: "malware", label: "Malware Scanner", icon: Bug, badge: "72 Engines", tourId: "nav-malware" },
+    { id: "network", label: "Network Telemetry", icon: Activity, tourId: "nav-network" },
+    { id: "vulnerabilityScanner", label: "Vulnerability Scanner", icon: Scan },
+    { id: "threatIntel", label: "Threat Intelligence", icon: Globe },
+    { id: "alerts", label: "Security Alerts", icon: Bell, count: criticalAlertsCount },
+    { id: "history", label: "Audit & History", icon: FileText },
+    { id: "settings", label: "System Settings", icon: Settings },
   ];
 
   return (
-    <div className="flex h-screen bg-zinc-50 dark:bg-[#030303] text-zinc-900 dark:text-zinc-100 font-sans antialiased overflow-hidden selection:bg-blue-600 selection:text-white">
-      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
-      <QuickScanModal 
-        isOpen={quickScanOpen} 
-        onClose={() => setQuickScanOpen(false)} 
-        onNavigateToView={(viewId) => {
-          setActiveTab(viewId);
-          setQuickScanOpen(false);
-        }}
-      />
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-[#0a0a0a] text-zinc-900 dark:text-zinc-100 transition-colors">
+      {/* Top Navbar */}
+      <header className="sticky top-0 z-40 h-14 bg-white/90 dark:bg-[#111111]/90 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+          <CyberShieldLogo />
+        </div>
 
-      {/* Mobile sidebar backdrop */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/80 z-40 md:hidden backdrop-blur-xs transition-opacity duration-200"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Main Sidebar */}
-      <aside className={`
-        fixed md:static inset-y-0 left-0 z-50
-        w-72 max-w-[85vw] bg-white dark:bg-[#080808] border-r border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between
-        transform transition-transform duration-200 ease-in-out shadow-2xl md:shadow-none
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-      `}>
-        <div className="p-4 sm:p-5 border-b border-zinc-200 dark:border-zinc-800/80 shrink-0 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-             <CyberShieldLogo className="w-8 h-8 shrink-0 drop-shadow-[0_0_8px_rgba(0,210,255,0.4)]" />
-             <div>
-               <h1 className="text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-100">CyberShield</h1>
-               <p className="text-[10px] text-zinc-500 font-mono">Real-Time Threat Intelligence</p>
-             </div>
+        {/* Status indicator & Search */}
+        <div className="hidden sm:flex items-center space-x-4">
+          <div className="flex items-center space-x-2 px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-mono">
+            <span className={`w-2 h-2 rounded-full ${
+              systemStatus === "Operational" ? "bg-emerald-500 animate-pulse" :
+              systemStatus === "Elevated Threat Activity" ? "bg-amber-500 animate-pulse" : "bg-rose-500 animate-ping"
+            }`} />
+            <span className="text-zinc-500 uppercase text-[10px]">GRID:</span>
+            <span className={`font-semibold ${
+              systemStatus === "Operational" ? "text-emerald-500" :
+              systemStatus === "Elevated Threat Activity" ? "text-amber-500" : "text-rose-500"
+            }`}>
+              {systemStatus}
+            </span>
           </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="md:hidden p-1.5 rounded-md text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 transition-colors cursor-pointer"
-            aria-label="Close menu"
-          >
-            <X size={18} />
-          </button>
+
+          <div className="relative w-48 lg:w-64">
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search threat indicators..."
+              className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg pl-8 pr-3 py-1 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 font-mono"
+            />
+          </div>
         </div>
 
-        {/* Global Quick Scan Sidebar Trigger */}
-        <div className="px-3 pt-3 pb-1">
+        {/* Right Controls */}
+        <div className="flex items-center space-x-2">
           <button
-            onClick={() => { setQuickScanOpen(true); setSidebarOpen(false); }}
-            className="w-full flex items-center px-3 py-2 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold transition-colors cursor-pointer"
+            onClick={toggleTheme}
+            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            className="p-2 rounded-lg text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           >
-            <div className="flex items-center space-x-2">
-              <Zap size={14} className="shrink-0" />
-              <span>Quick Threat Scan</span>
-            </div>
+            {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+
+          <button
+            onClick={() => setAuthModalOpen(true)}
+            className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 text-xs font-mono transition-colors"
+          >
+            <UserIcon size={14} className={user ? "text-emerald-400" : "text-zinc-500"} />
+            <span className="hidden sm:inline font-semibold">
+              {user ? (user.displayName || user.email?.split("@")[0] || "User") : "Sign In"}
+            </span>
+            {user && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">
+                {isAdmin ? "ADMIN" : "ANALYST"}
+              </span>
+            )}
           </button>
         </div>
+      </header>
 
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+      {/* Main Container */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Desktop Sidebar */}
+        <aside className="hidden md:flex w-60 shrink-0 flex-col bg-white dark:bg-[#111111] border-r border-zinc-200 dark:border-zinc-800 p-3 space-y-1">
+          <div className="px-3 py-2 text-[10px] font-mono uppercase text-zinc-500 font-bold tracking-wider">
+            SOC Operations
+          </div>
           {navItems.map((item) => {
+            const Icon = item.icon;
             const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-                className={`w-full flex items-center px-3 py-2.5 rounded-md transition-colors text-sm font-medium cursor-pointer ${
-                  isActive 
-                    ? 'bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-800' 
-                    : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:bg-zinc-900/50 border border-transparent'
+                onClick={() => setActiveTab(item.id)}
+                data-tour={item.tourId}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                  isActive
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20"
+                    : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100"
                 }`}
               >
-                <span className="flex-1 text-left">{item.label}</span>
+                <div className="flex items-center space-x-2.5">
+                  <Icon size={16} className={isActive ? "text-emerald-500" : "text-zinc-500"} />
+                  <span>{item.label}</span>
+                </div>
                 {item.badge && (
-                  <span className="px-1.5 py-0.5 bg-zinc-100 text-zinc-950 text-[10px] font-bold rounded-sm">
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
                     {item.badge}
                   </span>
                 )}
+                {item.count && item.count > 0 ? (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-500 text-white font-bold">
+                    {item.count}
+                  </span>
+                ) : null}
               </button>
             );
           })}
-        </nav>
-        
-        {/* User container */}
-        <div className="p-4 border-t border-zinc-200 dark:border-zinc-800/80 shrink-0 flex items-center justify-between gap-2">
-          {user ? (
-            <button 
-              onClick={() => { setAuthModalOpen(true); setSidebarOpen(false); }} 
-              className="flex items-center space-x-2.5 flex-1 min-w-0 p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors text-left cursor-pointer"
-              title="Click to view account and authentication details"
-            >
-              {user.photoURL ? (
-                <img 
-                  src={user.photoURL} 
-                  alt={user.displayName || "User"} 
-                  className="w-8 h-8 rounded-full border border-zinc-300 dark:border-zinc-700 shrink-0 object-cover" 
-                  referrerPolicy="no-referrer" 
-                />
-              ) : (
-                <div className="w-8 h-8 rounded bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-600 dark:text-zinc-400 shrink-0 font-mono">
-                  {user.email ? user.email.charAt(0).toUpperCase() : "U"}
-                </div>
-              )}
-              <div className="text-left flex-1 min-w-0">
-                <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate">
-                  {user.displayName || user.email?.split('@')[0] || "Operator"}
-                </p>
-                <div className="flex items-center space-x-1.5">
-                  <span className={`text-[10px] font-mono font-bold ${isAdmin ? 'text-emerald-400' : 'text-blue-400'}`}>
-                    {isAdmin ? 'Admin' : 'User'}
-                  </span>
-                  <span className={`text-[9px] font-mono font-bold ${emailVerified ? 'text-emerald-400' : 'text-amber-400'}`}>
-                    • {emailVerified ? 'Verified' : 'Unverified'}
-                  </span>
-                </div>
+
+          <div className="pt-4 mt-auto">
+            <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-[10px] space-y-1 font-mono text-zinc-500">
+              <div className="flex items-center justify-between">
+                <span>Core Engine</span>
+                <span className="text-emerald-500 font-bold">v2.1.0</span>
               </div>
-            </button>
-          ) : (
-            <button
-              onClick={() => setAuthModalOpen(true)}
-              className="flex items-center justify-center flex-1 min-w-0 px-2.5 py-2 rounded-md bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-white border border-zinc-200 dark:border-zinc-800 text-xs font-medium transition-colors cursor-pointer"
-            >
-              <span className="truncate">Sign In</span>
-            </button>
-          )}
-
-          <button
-            onClick={() => { setActiveTab('alerts'); setSidebarOpen(false); }}
-            title="Notifications"
-            aria-label="Notifications"
-            className={`p-2 rounded-md transition-colors shrink-0 cursor-pointer relative ${
-              activeTab === 'alerts'
-                ? 'bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-800'
-                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:bg-zinc-900 border border-transparent'
-            }`}
-          >
-            <Bell size={18} />
-            {criticalAlertsCount !== undefined && criticalAlertsCount > 0 && (
-              <span className="absolute top-1 right-1 flex items-center justify-center w-3.5 h-3.5 rounded-full bg-red-500 text-white text-[8px] font-bold border border-[#080808]">
-                {criticalAlertsCount}
-              </span>
-            )}
-          </button>
-          <button
-            id="sidebar-settings-btn"
-            onClick={() => { setActiveTab('settings'); setSidebarOpen(false); }}
-            title="Settings"
-            aria-label="Settings"
-            className={`p-2 rounded-md transition-colors shrink-0 cursor-pointer ${
-              activeTab === 'settings'
-                ? 'bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-800'
-                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:bg-zinc-900 border border-transparent'
-            }`}
-          >
-            <Settings size={18} />
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Container */}
-      <main className="flex-1 flex flex-col overflow-y-auto bg-zinc-50 dark:bg-[#030303]">
-        {/* Top Header */}
-        <header className="h-14 sm:h-16 border-b border-zinc-200 dark:border-zinc-800/80 flex items-center justify-between px-3 sm:px-6 shrink-0 bg-white dark:bg-[#050505]">
-          <div className="flex items-center space-x-2.5 sm:space-x-4">
-            <button 
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 -ml-1 rounded-md text-zinc-700 dark:text-zinc-300 hover:text-white bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:bg-zinc-800 transition-colors cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center shrink-0"
-              aria-label="Toggle menu"
-            >
-              <Menu size={18} />
-            </button>
-            
-            {/* Mobile Header Brand */}
-            <div className="flex items-center space-x-2 md:hidden">
-              <CyberShieldLogo className="w-6 h-6 shrink-0 drop-shadow-[0_0_6px_rgba(0,210,255,0.4)]" />
-              <span className="text-xs font-bold font-mono tracking-tight text-zinc-900 dark:text-zinc-100">CyberShield</span>
+              <div className="flex items-center justify-between">
+                <span>PhishGuard ML</span>
+                <span className="text-zinc-400">235k Model</span>
+              </div>
             </div>
           </div>
+        </aside>
 
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            {toggleTheme && (
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0 shadow-xs"
-                aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark SOC Mode"}
-              >
-                {isDarkMode ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-zinc-700" />}
-              </button>
-            )}
-            
-            {/* Auth Top Action */}
-            {user ? (
-              <button
-                onClick={() => setAuthModalOpen(true)}
-                className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-md bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-700 dark:text-zinc-300 hover:text-white transition-colors cursor-pointer min-h-[36px]"
-                title={user.email || ""}
-              >
-                <span className={`w-2 h-2 rounded-full ${emailVerified ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                <span className="font-mono text-[11px] font-bold">
-                  {isAdmin ? 'Admin' : 'User'}
-                </span>
-              </button>
-            ) : (
-              <button
-                onClick={() => setAuthModalOpen(true)}
-                className="px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-colors cursor-pointer min-h-[36px] flex items-center"
-              >
-                <span>Sign In</span>
-              </button>
-            )}
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-xs flex">
+            <div className="w-64 bg-white dark:bg-[#111111] p-4 space-y-2 flex flex-col h-full border-r border-zinc-200 dark:border-zinc-800">
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800">
+                <CyberShieldLogo />
+                <button onClick={() => setMobileMenuOpen(false)} className="p-1">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto space-y-1 pt-2">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium ${
+                        isActive
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          : "text-zinc-400 hover:bg-zinc-900"
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <Icon size={16} />
+                        <span>{item.label}</span>
+                      </div>
+                      {item.count && item.count > 0 ? (
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-500 text-white font-bold">
+                          {item.count}
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex-1" onClick={() => setMobileMenuOpen(false)} />
           </div>
-        </header>
+        )}
 
+        {/* Content Viewport */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
 
-
-        {/* View Content */}
-        <div className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full overflow-x-hidden">
-          {children}
-        </div>
-      </main>
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   );
 }

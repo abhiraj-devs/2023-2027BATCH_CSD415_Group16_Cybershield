@@ -1,6 +1,7 @@
 {
-  "name": "CyberShield",
-  "description": "Intelligent Real-Time Cybersecurity Monitoring Platform with AI Phishing Detection, Malware Hash Scanning, Simulated Network Traffic, Threat Intelligence, and Automated Alerts.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "name": "CyberShield AI",
+  "description": "Real-Time AI Threat Detection Platform featuring Two-Way Dual-Engine Phishing Link Verification, 72-Engine Malware Hash Analysis, eBPF Network Telemetry, and Threat Intelligence.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

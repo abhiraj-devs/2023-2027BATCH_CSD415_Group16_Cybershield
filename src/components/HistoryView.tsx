@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText,  ShieldAlert, Bug, RefreshCw, Lock } from "lucide-react";
+import { FileText, ShieldAlert, Bug, RefreshCw, Layers } from "lucide-react";
 import { PhishingScan, MalwareScan } from "../types";
 import { fetchPhishingHistory, fetchMalwareHistory } from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -8,7 +8,7 @@ export default function HistoryView() {
   const { user } = useAuth();
   const [phishingHistory, setPhishingHistory] = useState<PhishingScan[]>([]);
   const [malwareHistory, setMalwareHistory] = useState<MalwareScan[]>([]);
-  const [activeTab, setActiveTab] = useState<'phishing' | 'malware'>('phishing');
+  const [activeTab, setActiveTab] = useState<"phishing" | "malware">("phishing");
   const [loading, setLoading] = useState(false);
 
   const loadData = async () => {
@@ -21,13 +21,11 @@ export default function HistoryView() {
     try {
       const [phish, mal] = await Promise.all([
         fetchPhishingHistory(user.email),
-        fetchMalwareHistory(user.email)
+        fetchMalwareHistory(user.email),
       ]);
-      setPhishingHistory(phish);
-      setMalwareHistory(mal);
-    } catch {
-      // Handled with empty fallback arrays
-    } finally {
+      setPhishingHistory(phish || []);
+      setMalwareHistory(mal || []);
+    } catch {} finally {
       setLoading(false);
     }
   };
@@ -38,146 +36,137 @@ export default function HistoryView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-6 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-xl bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 shadow-xs">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2">
-            <FileText size={20} className="text-zinc-600 dark:text-zinc-400" />
-            <span>Audit & Scan History</span>
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm mt-1">
-            {user?.email 
-              ? `Personal audit logs for ${user.email}.`
-              : "Historical audit logs of phishing and malware analyses (sign in required to view)."}
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold font-mono text-zinc-900 dark:text-zinc-100 flex items-center space-x-2">
+              <FileText size={22} className="text-blue-400" />
+              <span>Forensic Audit & Scan Logs</span>
+            </h1>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20">
+              AUDIT TRAILS
+            </span>
+          </div>
+          <p className="text-xs text-zinc-500 mt-1">
+            {user?.email
+              ? `Personal audit logs recorded for authenticated operator ${user.email}.`
+              : "Sign in to access immutable forensic audit logs and historical scan records."}
           </p>
         </div>
 
-        <button 
+        <button
           onClick={loadData}
           disabled={loading || !user}
-          className="flex items-center justify-center space-x-2 text-[10px] font-mono text-zinc-600 dark:text-zinc-400 px-3 py-2 sm:py-1.5 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:bg-zinc-800 uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer w-full sm:w-auto"
+          className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-mono border border-zinc-200 dark:border-zinc-800 flex items-center space-x-1.5 transition-colors disabled:opacity-50 cursor-pointer w-fit"
         >
           <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
           <span>SYNC LOGS</span>
         </button>
       </div>
 
-      <div className="p-4 sm:p-6 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 space-y-4">
-        {!user && (
-          <div className="p-3 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-mono flex items-center space-x-2">
-            <Lock size={14} className="shrink-0" />
-            <span>Guest Mode: Persistent scan history is only saved for signed-in accounts. Guest scans reset upon refreshing.</span>
-          </div>
-        )}
-        {user?.email && (
-          <div className="p-3 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono flex items-center justify-between">
-            <span>Audit logs scoped to account: <strong>{user.email}</strong></span>
+      {/* Tab Switcher */}
+      <div className="flex items-center space-x-2 border-b border-zinc-200 dark:border-zinc-800 pb-3">
+        <button
+          onClick={() => setActiveTab("phishing")}
+          className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
+            activeTab === "phishing"
+              ? "bg-emerald-600 text-white font-semibold"
+              : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+          }`}
+        >
+          <Layers size={14} />
+          <span>Phishing URL Audits ({phishingHistory.length})</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("malware")}
+          className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
+            activeTab === "malware"
+              ? "bg-amber-600 text-white font-semibold"
+              : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+          }`}
+        >
+          <Bug size={14} />
+          <span>Malware Payload Audits ({malwareHistory.length})</span>
+        </button>
+      </div>
+
+      {/* Log Feed */}
+      <div className="space-y-3">
+        {activeTab === "phishing" && (
+          <div className="space-y-3">
+            {phishingHistory.map((scan) => (
+              <div
+                key={scan.id}
+                className="p-4 rounded-xl bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 space-y-2"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2">
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
+                      scan.classification === "PHISHING" ? "bg-rose-500/10 text-rose-400 border border-rose-500/20" :
+                      scan.classification === "SUSPICIOUS" ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-emerald-500/10 text-emerald-400"
+                    }`}>
+                      {scan.classification}
+                    </span>
+                    <span className="text-xs font-mono font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-md">
+                      {scan.url}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-4 text-xs font-mono">
+                    <span className="text-zinc-500">{new Date(scan.scannedAt).toLocaleString()}</span>
+                    <span className="font-bold text-zinc-300">{scan.riskScore}/100</span>
+                  </div>
+                </div>
+                {scan.aiExplanation && (
+                  <p className="text-xs text-zinc-500 font-sans leading-relaxed pt-1">
+                    {scan.aiExplanation}
+                  </p>
+                )}
+              </div>
+            ))}
+            {phishingHistory.length === 0 && (
+              <div className="p-8 text-center text-xs text-zinc-500 font-mono bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                {user ? "No phishing scan records found for this account." : "Please sign in to view personal scan audit logs."}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-4">
-          <button
-            onClick={() => setActiveTab('phishing')}
-            className={`px-4 py-2 rounded text-xs font-bold font-mono tracking-wider transition-colors flex items-center space-x-2 cursor-pointer ${
-              activeTab === 'phishing' 
-                ? 'bg-zinc-100 text-zinc-950' 
-                : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-500 hover:text-zinc-700 dark:text-zinc-300'
-            }`}
-          >
-            <ShieldAlert size={14} />
-            <span>PHISHING LOGS</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('malware')}
-            className={`px-4 py-2 rounded text-xs font-bold font-mono tracking-wider transition-colors flex items-center space-x-2 cursor-pointer ${
-              activeTab === 'malware' 
-                ? 'bg-zinc-100 text-zinc-950' 
-                : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-500 hover:text-zinc-700 dark:text-zinc-300'
-            }`}
-          >
-            <Bug size={14} />
-            <span>MALWARE LOGS</span>
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
-          {activeTab === 'phishing' ? (
-            <table className="w-full text-left border-collapse min-w-[560px]">
-              <thead>
-                <tr className="border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
-                  <th className="py-3 px-4 font-normal">Target URL</th>
-                  <th className="py-3 px-4 font-normal">Classification</th>
-                  <th className="py-3 px-4 font-normal">Risk</th>
-                  <th className="py-3 px-4 font-normal">Timestamp</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800/50 text-xs font-mono">
-                {phishingHistory.map((scan) => (
-                  <tr key={scan.id} className="hover:bg-zinc-100 dark:bg-zinc-900/50 transition-colors">
-                    <td className="py-3 px-4 text-zinc-700 dark:text-zinc-300 truncate max-w-sm">{scan.url}</td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                        scan.classification === 'PHISHING' ? 'text-red-500 bg-red-500/10' :
-                        scan.classification === 'SUSPICIOUS' ? 'text-orange-500 bg-orange-500/10' :
-                        'text-blue-500 bg-blue-500/10'
-                      }`}>
-                        {scan.classification}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-bold text-zinc-900 dark:text-zinc-100">{scan.riskScore}</td>
-                    <td className="py-3 px-4 text-[10px] text-zinc-600">{new Date(scan.scannedAt).toLocaleString()}</td>
-                  </tr>
-                ))}
-                {phishingHistory.length === 0 && !loading && (
-                  <tr>
-                    <td colSpan={4} className="py-8 text-center text-zinc-500">No phishing logs found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          ) : (
-            <table className="w-full text-left border-collapse min-w-[560px]">
-              <thead>
-                <tr className="border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
-                  <th className="py-3 px-4 font-normal">File / Hash</th>
-                  <th className="py-3 px-4 font-normal">Status</th>
-                  <th className="py-3 px-4 font-normal">Detection</th>
-                  <th className="py-3 px-4 font-normal">Timestamp</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800/50 text-xs font-mono">
-                {malwareHistory.map((scan) => (
-                  <tr key={scan.id} className="hover:bg-zinc-100 dark:bg-zinc-900/50 transition-colors">
-                    <td className="py-3 px-4">
-                      <div className="text-zinc-700 dark:text-zinc-300 truncate max-w-sm">{scan.fileName}</div>
-                      <div className="text-[10px] text-zinc-600 truncate max-w-sm">{scan.fileHash}</div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                        scan.status === 'MALICIOUS' ? 'text-red-500 bg-red-500/10' :
-                        scan.status === 'SUSPICIOUS' ? 'text-orange-500 bg-orange-500/10' :
-                        'text-blue-500 bg-blue-500/10'
-                      }`}>
-                        {scan.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="font-bold text-zinc-900 dark:text-zinc-100">{scan.enginesDetected}</span>
-                      <span className="text-zinc-500">/{scan.enginesTotal}</span>
-                    </td>
-                    <td className="py-3 px-4 text-[10px] text-zinc-600">{new Date(scan.scannedAt).toLocaleString()}</td>
-                  </tr>
-                ))}
-                {malwareHistory.length === 0 && !loading && (
-                  <tr>
-                    <td colSpan={4} className="py-8 text-center text-zinc-500">No malware logs found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
-        </div>
+        {activeTab === "malware" && (
+          <div className="space-y-3">
+            {malwareHistory.map((scan) => (
+              <div
+                key={scan.id}
+                className="p-4 rounded-xl bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 space-y-2"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2">
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
+                      scan.malicious ? "bg-rose-500/10 text-rose-400 border border-rose-500/20" : "bg-emerald-500/10 text-emerald-400"
+                    }`}>
+                      {scan.malicious ? "MALICIOUS" : "BENIGN"}
+                    </span>
+                    <span className="text-xs font-mono font-bold text-zinc-900 dark:text-zinc-100">
+                      {scan.filename}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-4 text-xs font-mono">
+                    <span className="text-zinc-500">{new Date(scan.scannedAt).toLocaleString()}</span>
+                    <span className="text-rose-400 font-bold">{scan.detectionCount} / {scan.totalEngines} Flagged</span>
+                  </div>
+                </div>
+                <div className="text-[11px] font-mono text-zinc-500 truncate">
+                  SHA-256: {scan.sha256}
+                </div>
+              </div>
+            ))}
+            {malwareHistory.length === 0 && (
+              <div className="p-8 text-center text-xs text-zinc-500 font-mono bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                {user ? "No malware scan records found for this account." : "Please sign in to view personal scan audit logs."}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

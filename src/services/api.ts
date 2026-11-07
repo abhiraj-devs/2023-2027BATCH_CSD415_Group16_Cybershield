@@ -1,739 +1,178 @@
-import { PhishingScan, MalwareScan, NetworkEvent, ThreatItem, ThreatSourceStatus, SecurityAlert, DashboardSummary, QuickScanResult } from "../types";
+import { 
+  DashboardSummary, 
+  SecurityAlert, 
+  NetworkEvent, 
+  ThreatItem, 
+  PhishingScan, 
+  MalwareScan, 
+  VulnerabilityAsset, 
+  CrowdsourcedThreat,
+  QuickScanResult
+} from "../types";
 
-export function getActiveUserEmail(): string | null {
-  try {
-    const userStr = localStorage.getItem("cybershield_user");
-    if (userStr) {
-      const parsed = JSON.parse(userStr);
-      if (parsed?.email) {
-        return parsed.email.toLowerCase().trim();
-      }
-    }
-  } catch {}
-  return null;
-}
+async function safeFetchJson<T>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(options?.headers || {}),
+    },
+    ...options,
+  });
 
-const getHeaders = () => {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  const activeEmail = getActiveUserEmail();
-  if (activeEmail) {
-    headers["X-User-Email"] = activeEmail;
-    headers["Authorization"] = `Bearer ${activeEmail}`;
-  }
-  return headers;
-};
-
-// Fallback seed datasets used if network or container has a transient outage or cold start
-const fallbackDashboardSummary: DashboardSummary = {
-  totalScans: 4,
-  phishingThreats: 1,
-  malwareThreats: 1,
-  activeAnomalies: 1,
-  criticalAlerts: 1,
-  threatIntelItems: 3,
-  systemStatus: "Elevated Threat Activity",
-  lastSync: new Date().toISOString(),
-};
-
-const fallbackAlerts: SecurityAlert[] = [
-  {
-    id: "alt_1",
-    eventType: "High Risk Phishing Target Detected",
-    severity: "HIGH",
-    title: "Executive Phishing Campaign Target",
-    message: "High-probability credential harvester detected spoofing enterprise identity SSO login.",
-    source: "RandomForest-URL-Classifier",
-    acknowledged: false,
-    webhookStatus: "sent",
-    createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-  },
-  {
-    id: "alt_2",
-    eventType: "Trojan Binary Hash Matched",
-    severity: "CRITICAL",
-    title: "Known Ransomware Signature in File Upload",
-    message: "Hash match with WannaCry cryptor payload detected in incoming file upload scan.",
-    source: "VirusTotal / Threat Intelligence API",
-    acknowledged: false,
-    webhookStatus: "sent",
-    createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-  },
-  {
-    id: "alt_3",
-    eventType: "Suspicious Egress Volume Spike",
-    severity: "MEDIUM",
-    title: "Anomaly: High Outbound Traffic via HTTPS",
-    message: "Outbound host 192.168.1.105 transferring 142.5 KB to untrusted Tor exit node.",
-    source: "Network-Telemetry-Engine",
-    acknowledged: true,
-    webhookStatus: "disabled",
-    createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
-  },
-];
-
-const fallbackNetworkEvents: NetworkEvent[] = [
-  {
-    id: "net_1",
-    timestamp: new Date().toISOString(),
-    sourceIp: "192.168.1.105",
-    destinationIp: "185.220.101.5",
-    protocol: "HTTPS",
-    port: 443,
-    bytes: 142500,
-    packets: 320,
-    bandwidthMbps: 12.4,
-    severity: "HIGH",
-    anomalyScore: 88,
-    eventType: "Suspicious Outbound Data Exfiltration Pattern",
-  },
-  {
-    id: "net_2",
-    timestamp: new Date(Date.now() - 5000).toISOString(),
-    sourceIp: "10.0.4.12",
-    destinationIp: "8.8.8.8",
-    protocol: "DNS",
-    port: 53,
-    bytes: 512,
-    packets: 4,
-    bandwidthMbps: 0.1,
-    severity: "INFO",
-    anomalyScore: 5,
-    eventType: "Standard DNS Query Resolution",
-  },
-  {
-    id: "net_3",
-    timestamp: new Date(Date.now() - 12000).toISOString(),
-    sourceIp: "192.168.1.50",
-    destinationIp: "45.33.32.156",
-    protocol: "SSH",
-    port: 22,
-    bytes: 4800,
-    packets: 45,
-    bandwidthMbps: 1.2,
-    severity: "MEDIUM",
-    anomalyScore: 42,
-    eventType: "Repeated SSH Authentication Probing",
-  },
-  {
-    id: "net_4",
-    timestamp: new Date(Date.now() - 25000).toISOString(),
-    sourceIp: "192.168.1.88",
-    destinationIp: "104.244.42.1",
-    protocol: "HTTPS",
-    port: 443,
-    bytes: 65400,
-    packets: 110,
-    bandwidthMbps: 4.8,
-    severity: "INFO",
-    anomalyScore: 12,
-    eventType: "Regular API Gateway Heartbeat",
-  },
-];
-
-const fallbackNetworkSummary = {
-  currentBandwidthMbps: 28.4,
-  averageBandwidthMbps: 22.8,
-  peakBandwidthMbps: 84.5,
-  activeConnections: 1420,
-  packetLossRate: "0.02%",
-  protocols: [
-    { protocol: "HTTPS", count: 850, percentage: 60 },
-    { protocol: "HTTP", count: 210, percentage: 15 },
-    { protocol: "DNS", count: 180, percentage: 13 },
-    { protocol: "SSH", count: 90, percentage: 7 },
-    { protocol: "Other", count: 70, percentage: 5 },
-  ],
-};
-
-const fallbackThreatIntel: ThreatItem[] = [
-  {
-    id: "vt_lockbit",
-    source: "VirusTotal Live Feed",
-    sourceOrigin: {
-      name: "VirusTotal v3 Live Threat Feed",
-      type: "VIRUSTOTAL",
-      endpoint: "ACTIVE / REAL-TIME",
-      attribution: "VirusTotal Community",
-      ingestionMethod: "API",
-      ingestedAt: new Date().toISOString()
-    },
-    indicatorType: "HASH",
-    indicator: "24f95e5d97def767393c266481665745263029b236575b5cb4dd16e9f17b653b",
-    indicators: ["24f95e5d97def767393c266481665745263029b236575b5cb4dd16e9f17b653b", "LockBit3_payload.bin", "win32.trojan.lockbit"],
-    threatName: "LockBit 3.0 Enterprise Ransomware",
-    severity: "CRITICAL",
-    description: "63/72 security vendors detected this high-impact ransomware. Executes anti-analysis loops, shadow copy wipe, and encrypted multi-thread dispatch.",
-    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString().split("T")[0],
-    updatedAt: new Date().toISOString().split("T")[0],
-    vtStats: {
-      malicious: 63,
-      suspicious: 1,
-      harmless: 0,
-      undetected: 8,
-      total: 72,
-    },
-    vtTags: ["ransomware", "peexe", "lockbit", "direct-cpu-clock-access", "overlay"],
-    vtPermalink: "https://www.virustotal.com/gui/file/24f95e5d97def767393c266481665745263029b236575b5cb4dd16e9f17b653b",
-    popularCategory: "ransomware",
-    engineDetections: [
-      { engine: "Microsoft", category: "malicious", result: "Ransom:Win32/Lockbit.A!MTB" },
-      { engine: "Kaspersky", category: "malicious", result: "HEUR:Trojan-Ransom.Win32.Lockbit.gen" },
-      { engine: "CrowdStrike", category: "malicious", result: "win/malicious_confidence_100% (W)" },
-      { engine: "Sophos", category: "malicious", result: "Troj/Lockbit-AB" },
-    ],
-  },
-  {
-    id: "vt_redline",
-    source: "VirusTotal Live Feed",
-    sourceOrigin: {
-      name: "PhishTank Anti-Phishing Database",
-      type: "OTHER",
-      endpoint: "SYNCED",
-      attribution: "PhishTank Community",
-      ingestionMethod: "API",
-      ingestedAt: new Date().toISOString()
-    },
-    indicatorType: "HASH",
-    indicator: "ed01ebf83334a193707a43a396482b1c5a31dd9451b54314fa76103b4096da80",
-    indicators: ["ed01ebf83334a193707a43a396482b1c5a31dd9451b54314fa76103b4096da80", "RedLine_Stealer_x64.exe"],
-    threatName: "RedLine Infostealer v24.1 Payload",
-    severity: "CRITICAL",
-    description: "68/72 security engines flagged this memory-resident infostealer. Steals saved browser passwords, session cookies, Discord tokens, and cryptocurrency wallet seeds.",
-    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString().split("T")[0],
-    updatedAt: new Date().toISOString().split("T")[0],
-    vtStats: {
-      malicious: 68,
-      suspicious: 0,
-      harmless: 0,
-      undetected: 4,
-      total: 72,
-    },
-    vtTags: ["trojan", "stealer", "infostealer", "crypto-drainer"],
-    vtPermalink: "https://www.virustotal.com/gui/file/ed01ebf83334a193707a43a396482b1c5a31dd9451b54314fa76103b4096da80",
-    popularCategory: "trojan",
-    engineDetections: [
-      { engine: "Kaspersky", category: "malicious", result: "HEUR:Trojan.Win32.Generic" },
-      { engine: "Microsoft", category: "malicious", result: "Trojan:Win32/RedLineStealer.G!dha" },
-      { engine: "BitDefender", category: "malicious", result: "Gen:Variant.Bredolab.26412" },
-    ],
-  },
-  {
-    id: "ti_1",
-    source: "NVD / MITRE",
-    sourceOrigin: {
-      name: "MITRE ATT&CK Framework",
-      type: "MITRE",
-      endpoint: "SYNCED",
-      attribution: "MITRE",
-      ingestionMethod: "API",
-      ingestedAt: new Date().toISOString()
-    },
-    indicatorType: "CVE",
-    indicator: "CVE-2026-1042",
-    cveId: "CVE-2026-1042",
-    threatName: "Windows Kernel Privilege Escalation Vulnerability",
-    severity: "CRITICAL",
-    description: "Flaw in win32k subsystem memory allocation allows authenticated low-integrity users to elevate to NT AUTHORITY\\SYSTEM privileges.",
-    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString().split("T")[0],
-    updatedAt: new Date().toISOString().split("T")[0],
-  },
-  {
-    id: "vt_c2_ip",
-    source: "VirusTotal Live Feed",
-    sourceOrigin: {
-      name: "AlienVault OTX Community Pulse",
-      type: "ALIENVAULT",
-      endpoint: "SYNCED",
-      attribution: "AlienVault",
-      ingestionMethod: "API",
-      ingestedAt: new Date().toISOString()
-    },
-    indicatorType: "IP",
-    indicator: "185.220.101.5",
-    threatName: "Tor Exit Relay / Active C2 Command Node",
-    severity: "HIGH",
-    description: "21 security vendors identified this IP as an active Command & Control relay and malicious exit node involved in ransomware multi-stage payload drops.",
-    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString().split("T")[0],
-    updatedAt: new Date().toISOString().split("T")[0],
-    vtStats: {
-      malicious: 21,
-      suspicious: 3,
-      harmless: 19,
-      undetected: 45,
-      total: 88,
-    },
-    vtTags: ["tor-exit", "c2-relay", "botnet", "anonymizer"],
-    vtPermalink: "https://www.virustotal.com/gui/ip-address/185.220.101.5",
-    popularCategory: "c2-infrastructure",
-    engineDetections: [
-      { engine: "CrowdStrike Falcon", category: "malicious", result: "Malicious IP - C2" },
-      { engine: "Fortinet", category: "malicious", result: "Malicious Host" },
-      { engine: "AlienVault", category: "malicious", result: "Scanning Host" },
-    ],
-  },
-  {
-    id: "vt_domain_phish",
-    source: "VirusTotal Live Feed",
-    sourceOrigin: {
-      name: "CISA Known Exploited Vulnerabilities",
-      type: "CISA",
-      endpoint: "SYNCED",
-      attribution: "CISA",
-      ingestionMethod: "API",
-      ingestedAt: new Date().toISOString()
-    },
-    indicatorType: "DOMAIN",
-    indicator: "secure-auth-apple-support-verify.com",
-    threatName: "Apple ID Credential Harvesting Infrastructure",
-    severity: "HIGH",
-    description: "16 security vendors flagged this newly observed domain for targeted phishing, deploying fraudulent OAuth prompts and 2FA intercept forms.",
-    publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString().split("T")[0],
-    updatedAt: new Date().toISOString().split("T")[0],
-    vtStats: {
-      malicious: 16,
-      suspicious: 4,
-      harmless: 8,
-      undetected: 42,
-      total: 70,
-    },
-    vtTags: ["phishing", "brand-impersonation", "credential-harvesting"],
-    vtPermalink: "https://www.virustotal.com/gui/domain/secure-auth-apple-support-verify.com",
-    popularCategory: "phishing",
-    engineDetections: [
-      { engine: "Google Safe Browsing", category: "malicious", result: "Phishing site" },
-      { engine: "Kaspersky", category: "malicious", result: "Phishing URL" },
-      { engine: "Netcraft", category: "malicious", result: "Malicious" },
-    ],
-  },
-];
-
-/**
- * Resilient JSON fetcher with automated retry and fallback capability.
- * Prevents intermittent network dropouts or container restarts from throwing unhandled errors.
- */
-async function safeFetchJson<T>(
-  url: string,
-  options?: RequestInit & { timeoutMs?: number },
-  fallback?: T,
-  retries = 1
-): Promise<T> {
-  let lastError: any = null;
-  const timeoutMs = options?.timeoutMs || 10000;
-
-  for (let attempt = 0; attempt <= retries; attempt++) {
+  if (!res.ok) {
+    const errorText = await res.text();
+    let errorMsg = `Request failed (${res.status})`;
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        try {
-          controller.abort();
-        } catch {}
-      }, timeoutMs);
-
-      const res = await fetch(url, {
-        ...options,
-        headers: {
-          ...getHeaders(),
-          ...(options?.headers || {}),
-        },
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      const text = await res.text();
-      let json: any = null;
-      try {
-        json = JSON.parse(text);
-      } catch {
-        // Not JSON
-      }
-
-      if (!res.ok) {
-        const errorMsg = json?.error?.message || json?.message || `HTTP ${res.status}`;
-        throw new Error(errorMsg);
-      }
-
-      if (json && !json.success && json.error) {
-        throw new Error(json.error.message || `Request to ${url} unsuccessful`);
-      }
-
-      return json?.data !== undefined ? json.data : (json as unknown as T);
-    } catch (err: any) {
-      lastError = err;
-      // Do not retry 4xx errors
-      if (err.message && (err.message.includes("HTTP 4") || err.message.includes("password") || err.message.includes("account") || err.message.includes("email"))) {
-        break;
-      }
-      if (attempt < retries) {
-        // Wait briefly before retrying
-        await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
-      }
-    }
+      const parsed = JSON.parse(errorText);
+      if (parsed.error?.message) errorMsg = parsed.error.message;
+      else if (parsed.message) errorMsg = parsed.message;
+    } catch {}
+    throw new Error(errorMsg);
   }
 
-  if (fallback !== undefined) {
-    return fallback;
+  const json = await res.json();
+  if (json && typeof json === "object" && "data" in json) {
+    return json.data as T;
   }
-
-  throw lastError || new Error(`Failed to request ${url}`);
+  return json as T;
 }
 
+// Dashboard
 export async function fetchDashboardSummary(): Promise<DashboardSummary> {
-  return safeFetchJson<DashboardSummary>("/api/dashboard/summary", {}, fallbackDashboardSummary);
+  return safeFetchJson<DashboardSummary>("/api/dashboard/summary");
 }
 
-function calculateLocalPhishingFallback(url: string): PhishingScan {
-  let hostname = "";
-  try {
-    const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
-    hostname = parsed.hostname;
-  } catch {
-    hostname = url;
-  }
-  const urlLength = url.length;
-  const hostnameLength = hostname.length;
-  const dotsCount = (hostname.match(/\./g) || []).length;
-  const hyphensCount = (hostname.match(/-/g) || []).length;
-  const hasHttps = url.toLowerCase().startsWith("https://");
-  const isIpAddress = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(hostname);
-  const specialCharsCount = (url.match(/[@_?&=%]/g) || []).length;
-
-  const suspiciousKeywords = ["login", "verify", "verification", "account", "update", "secure", "password", "bank", "wallet", "payment", "confirm", "signin", "credential", "security", "apple", "paypal"];
-  let suspiciousKeywordsCount = 0;
-  const lowerUrl = url.toLowerCase();
-  for (const kw of suspiciousKeywords) {
-    if (lowerUrl.includes(kw)) suspiciousKeywordsCount++;
-  }
-
-  let riskScore = 12;
-  if (urlLength > 75) riskScore += 15;
-  if (dotsCount > 3) riskScore += 20;
-  if (hyphensCount > 2) riskScore += 15;
-  if (!hasHttps) riskScore += 25;
-  if (isIpAddress) riskScore += 30;
-  if (suspiciousKeywordsCount > 0) riskScore += (suspiciousKeywordsCount * 18);
-  if (specialCharsCount > 5) riskScore += 10;
-  riskScore = Math.min(100, Math.max(5, riskScore));
-
-  const classification: 'SAFE' | 'SUSPICIOUS' | 'PHISHING' = 
-    riskScore >= 70 ? 'PHISHING' : (riskScore >= 35 ? 'SUSPICIOUS' : 'SAFE');
-  const confidence = Number((0.85 + (Math.abs(riskScore - 50) / 250)).toFixed(2));
-
-  return {
-    id: "ph_local_" + Date.now(),
-    url,
-    riskScore,
-    classification,
-    confidence: Math.min(0.98, confidence),
-    featureSummary: {
-      urlLength,
-      hostnameLength,
-      dotsCount,
-      hyphensCount,
-      hasHttps,
-      isIpAddress,
-      suspiciousKeywordsCount,
-      specialCharsCount,
-    },
-    aiExplanation: `Real-time lexical inspection completed. URL analyzed with ${dotsCount} subdomain dots, ${suspiciousKeywordsCount} sensitive keyword tokens, and evaluated with an overall threat score of ${riskScore}/100.`,
-    modelVersion: "2.1.0-dual-engine (CyberShield Local Heuristics)",
-    scannedAt: new Date().toISOString(),
-    dualEngine: {
-      engine1: {
-        name: "PhishGuard AI Cloud Model (235k Dataset)",
-        endpoint: "https://phishguard-api-pbjw.onrender.com",
-        isPhishing: riskScore >= 50,
-        probability: riskScore,
-        features: {
-          DomainLength: hostnameLength,
-          IsDomainIP: isIpAddress ? 1 : 0,
-          IsHTTPS: hasHttps ? 1 : 0,
-          NoOfSubDomain: Math.max(0, dotsCount - 1),
-        },
-        status: "DEGRADED",
-      },
-      engine2: {
-        name: "CyberShield Deep Lexical & Structural Engine",
-        riskScore,
-        classification,
-        confidence,
-        featureSummary: {
-          urlLength,
-          hostnameLength,
-          dotsCount,
-          hyphensCount,
-          hasHttps,
-          isIpAddress,
-          suspiciousKeywordsCount,
-          specialCharsCount,
-        },
-      },
-      consensus: {
-        agreement: 'FULL_AGREEMENT',
-        finalVerdict: classification === 'PHISHING' ? 'CONFIRMED_PHISHING' : (classification === 'SUSPICIOUS' ? 'SUSPICIOUS' : 'VERIFIED_SAFE'),
-        combinedScore: riskScore,
-        confidence,
-        description: `Local Engine Evaluation: ${classification} rating derived from ${suspiciousKeywordsCount} credential triggers and structural token heuristics.`,
-      },
-    },
-  };
-}
-
-export async function analyzePhishingUrl(url: string, userEmail?: string): Promise<PhishingScan> {
-  const activeEmail = userEmail || getActiveUserEmail();
-  try {
-    return await safeFetchJson<PhishingScan>(
-      "/api/phishing/analyze",
-      {
-        method: "POST",
-        body: JSON.stringify({ url, userEmail: activeEmail || undefined }),
-        timeoutMs: 12000,
-      } as any,
-      undefined,
-      1
-    );
-  } catch (err: any) {
-    console.warn("Phishing scan API timeout or abort, activating local heuristic fallback:", err?.message);
-    return calculateLocalPhishingFallback(url);
-  }
-}
-
-export async function fetchPhishGuardStatus(): Promise<{
-  engine: string;
-  endpoint: string;
-  status: "ONLINE" | "OFFLINE";
-  latencyMs?: number;
-  dataset?: string;
-  checkedAt?: string;
-}> {
-  return safeFetchJson<{
-    engine: string;
-    endpoint: string;
-    status: "ONLINE" | "OFFLINE";
-    latencyMs?: number;
-    dataset?: string;
-    checkedAt?: string;
-  }>("/api/phishing/engine-status", {}, {
-    engine: "PhishGuard 235k AI Model",
-    endpoint: "https://phishguard-api-pbjw.onrender.com",
-    status: "ONLINE",
-    latencyMs: 180,
-    dataset: "235,000 Verified URLs Training Corpus",
-    checkedAt: new Date().toISOString(),
-  });
-}
-
-export async function fetchPhishingHistory(userEmail?: string): Promise<PhishingScan[]> {
-  const activeEmail = userEmail || getActiveUserEmail();
-  if (!activeEmail) {
-    // Unauthenticated/guest visitors have NO persistent history across refreshes
-    return [];
-  }
-  return safeFetchJson<PhishingScan[]>(`/api/phishing/history?userEmail=${encodeURIComponent(activeEmail)}`, {}, []);
-}
-
-export async function fetchCrowdsourcedThreats(): Promise<any[]> {
-  return safeFetchJson<any[]>("/api/phishing/crowdsourced", {}, []);
-}
-
-export async function verifyCrowdsourcedThreat(id: string): Promise<any> {
-  return safeFetchJson<any>(`/api/phishing/crowdsourced/${id}/verify`, {
-    method: "POST"
-  });
-}
-
-export async function discardCrowdsourcedThreat(id: string): Promise<any> {
-  return safeFetchJson<any>(`/api/phishing/crowdsourced/${id}/discard`, {
-    method: "POST"
-  });
-}
-
-export async function scanMalwareFile(filename: string, sha256?: string, fileContent?: string, userEmail?: string): Promise<MalwareScan> {
-  const activeEmail = userEmail || getActiveUserEmail();
-  return safeFetchJson<MalwareScan>("/api/malware/scan", {
-    method: "POST",
-    body: JSON.stringify({ filename, sha256, fileContent, userEmail: activeEmail || undefined }),
-  });
-}
-
-export async function fetchMalwareHistory(userEmail?: string): Promise<MalwareScan[]> {
-  const activeEmail = userEmail || getActiveUserEmail();
-  if (!activeEmail) {
-    return [];
-  }
-  return safeFetchJson<MalwareScan[]>(`/api/malware/history?userEmail=${encodeURIComponent(activeEmail)}`, {}, []);
-}
-
-export async function fetchNetworkEvents(): Promise<NetworkEvent[]> {
-  return safeFetchJson<NetworkEvent[]>("/api/network/events", {}, fallbackNetworkEvents);
-}
-
-export async function fetchNetworkSummary(): Promise<any> {
-  return safeFetchJson<any>("/api/network/summary", {}, fallbackNetworkSummary);
-}
-
-export async function fetchThreatIntel(): Promise<ThreatItem[]> {
-  return safeFetchJson<ThreatItem[]>("/api/threat-intelligence", {}, fallbackThreatIntel);
-}
-
-export async function refreshThreatIntel(): Promise<ThreatItem[]> {
-  return safeFetchJson<ThreatItem[]>("/api/threat-intelligence/refresh", { method: "POST" }, fallbackThreatIntel);
-}
-
-export async function fetchThreatSourcesStatus(): Promise<ThreatSourceStatus[]> {
-  return safeFetchJson<ThreatSourceStatus[]>("/api/threat-intelligence/sources-status", {}, [
-    {
-      id: "CISA",
-      name: "CISA Known Exploited Vulnerabilities",
-      status: "SYNCED",
-      itemCount: 2,
-      lastSyncTime: new Date().toISOString(),
-      endpoint: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
-      description: "Official catalog of vulnerabilities actively exploited in the wild, monitored by the US DHS.",
-      badgeColor: "cyan"
-    },
-    {
-      id: "MITRE",
-      name: "MITRE ATT&CK Feed",
-      status: "SYNCED",
-      itemCount: 2,
-      lastSyncTime: new Date().toISOString(),
-      endpoint: "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json",
-      description: "Enterprise adversary tactics, techniques, and procedures (TTPs) matrix v14.1.",
-      badgeColor: "rose"
-    },
-    {
-      id: "ALIENVAULT",
-      name: "AlienVault OTX",
-      status: "SYNCED",
-      itemCount: 2,
-      lastSyncTime: new Date().toISOString(),
-      endpoint: "https://otx.alienvault.com/api/v1/indicators",
-      description: "Open Threat Exchange community-curated threat pulses, active C2 hosts, and malware hashes.",
-      badgeColor: "emerald"
-    },
-    {
-      id: "LOCAL_SOC",
-      name: "Local SOC Telemetry",
-      status: "STREAMING",
-      itemCount: 2,
-      lastSyncTime: new Date().toISOString(),
-      endpoint: "internal://sensor-mesh.cybershield.lan/telemetry/v1/stream",
-      description: "Internal IDS sensor grid, eBPF kernel probes, and live perimeter network intrusion triggers.",
-      badgeColor: "purple"
-    },
-    {
-      id: "CERTSTREAM",
-      name: "CertStream SSL Parked Domains",
-      status: "STREAMING",
-      itemCount: 2,
-      lastSyncTime: new Date().toISOString(),
-      endpoint: "wss://certstream.calidog.org / https://crt.sh",
-      description: "Real-time Certificate Transparency stream capturing newly issued SSL certs for parked phishing domains.",
-      badgeColor: "amber"
-    }
-  ]);
-}
-
-export async function streamNextThreatItem(source?: string): Promise<{ data: ThreatItem; sourcesStatus: ThreatSourceStatus[] }> {
-  return safeFetchJson<{ data: ThreatItem; sourcesStatus: ThreatSourceStatus[] }>("/api/threat-intelligence/stream-next", {
-    method: "POST",
-    body: JSON.stringify({ source }),
-  });
-}
-
-export async function lookupVirusTotalIntel(
-  query: string,
-  type?: 'file' | 'domain' | 'ip' | 'url'
-): Promise<ThreatItem> {
-  return safeFetchJson<ThreatItem>("/api/threat-intelligence/virustotal-lookup", {
-    method: "POST",
-    body: JSON.stringify({ query, type }),
-  });
-}
-
-export async function getVirusTotalStatus(): Promise<{ configured: boolean; service: string }> {
-  return safeFetchJson<{ configured: boolean; service: string }>(
-    "/api/threat-intelligence/virustotal-status",
-    {},
-    { configured: false, service: "VirusTotal v3" }
-  );
-}
-
-export async function lookupPhishTank(url: string): Promise<{
-  url: string;
-  inDatabase: boolean;
-  verified: boolean;
-  phishId?: string;
-  target?: string;
-  phishDetailUrl?: string;
-  checkedAt: string;
-}> {
-  return safeFetchJson<{
-    url: string;
-    inDatabase: boolean;
-    verified: boolean;
-    phishId?: string;
-    target?: string;
-    phishDetailUrl?: string;
-    checkedAt: string;
-  }>("/api/threat-intelligence/phishtank-lookup", {
-    method: "POST",
-    body: JSON.stringify({ url }),
-  }, {
-    url,
-    inDatabase: false,
-    verified: false,
-    checkedAt: new Date().toISOString(),
-  });
-}
-
+// Alerts
 export async function fetchAlerts(): Promise<SecurityAlert[]> {
-  return safeFetchJson<SecurityAlert[]>("/api/alerts", {}, fallbackAlerts);
+  return safeFetchJson<SecurityAlert[]>("/api/alerts");
 }
 
 export async function acknowledgeAlert(id: string): Promise<SecurityAlert> {
   return safeFetchJson<SecurityAlert>(`/api/alerts/${id}/acknowledge`, { method: "POST" });
 }
 
-export async function fetchSettings(): Promise<any> {
-  return safeFetchJson<any>("/api/settings", {}, {
-    discordWebhookUrl: "",
-    slackWebhookUrl: "",
-    minSeverity: "HIGH",
-    notificationsEnabled: false,
+// Network Telemetry
+export async function fetchNetworkEvents(): Promise<NetworkEvent[]> {
+  return safeFetchJson<NetworkEvent[]>("/api/network/events");
+}
+
+export async function fetchNetworkSummary(): Promise<any> {
+  return safeFetchJson<any>("/api/network/summary");
+}
+
+export async function runSpeedTestPing(): Promise<{ ping: number }> {
+  return safeFetchJson<{ ping: number }>("/api/speedtest/ping");
+}
+
+export async function runSpeedTestDownload(): Promise<{ download: number }> {
+  return safeFetchJson<{ download: number }>("/api/speedtest/download");
+}
+
+export async function runSpeedTestUpload(sizeKb: number = 256): Promise<{ upload: number }> {
+  return safeFetchJson<{ upload: number }>("/api/speedtest/upload", {
+    method: "POST",
+    body: JSON.stringify({ sizeKb }),
   });
+}
+
+// Threat Intel
+export async function fetchThreatIntel(): Promise<ThreatItem[]> {
+  return safeFetchJson<ThreatItem[]>("/api/threat-intel");
+}
+
+export async function refreshThreatIntel(): Promise<ThreatItem[]> {
+  return safeFetchJson<ThreatItem[]>("/api/threat-intel/refresh", { method: "POST" });
+}
+
+export async function getVirusTotalStatus(): Promise<any> {
+  return safeFetchJson<any>("/api/threat-intel/virustotal-status");
+}
+
+// Phishing Detection
+export async function analyzePhishingUrl(url: string, userEmail?: string): Promise<PhishingScan> {
+  return safeFetchJson<PhishingScan>("/api/phishing/analyze", {
+    method: "POST",
+    body: JSON.stringify({ url, userEmail }),
+  });
+}
+
+export async function fetchPhishingHistory(email?: string): Promise<PhishingScan[]> {
+  const query = email ? `?userEmail=${encodeURIComponent(email)}` : "";
+  return safeFetchJson<PhishingScan[]>(`/api/phishing/history${query}`);
+}
+
+export async function fetchPhishGuardStatus(): Promise<any> {
+  return safeFetchJson<any>("/api/phishing/engine-status");
+}
+
+export async function fetchCrowdsourcedThreats(): Promise<CrowdsourcedThreat[]> {
+  return safeFetchJson<CrowdsourcedThreat[]>("/api/phishing/crowdsourced");
+}
+
+export async function verifyCrowdsourcedThreat(id: string): Promise<any> {
+  return safeFetchJson<any>(`/api/phishing/crowdsourced/${id}/verify`, { method: "POST" });
+}
+
+export async function discardCrowdsourcedThreat(id: string): Promise<any> {
+  return safeFetchJson<any>(`/api/phishing/crowdsourced/${id}/discard`, { method: "POST" });
+}
+
+// Malware Analysis
+export async function scanMalwareFile(
+  filename: string,
+  sha256: string,
+  fileContent?: string,
+  userEmail?: string
+): Promise<MalwareScan> {
+  return safeFetchJson<MalwareScan>("/api/malware/scan", {
+    method: "POST",
+    body: JSON.stringify({ filename, sha256, fileContent, userEmail }),
+  });
+}
+
+export async function fetchMalwareHistory(email?: string): Promise<MalwareScan[]> {
+  const query = email ? `?userEmail=${encodeURIComponent(email)}` : "";
+  return safeFetchJson<MalwareScan[]>(`/api/malware/history${query}`);
+}
+
+// Vulnerability Scanner
+export async function runVulnerabilityScan(): Promise<VulnerabilityAsset[]> {
+  return safeFetchJson<VulnerabilityAsset[]>("/api/vulnerability/scan", { method: "POST" });
+}
+
+// Settings & Webhooks
+export async function fetchSettings(): Promise<any> {
+  return safeFetchJson<any>("/api/settings");
 }
 
 export async function updateSettings(settings: any): Promise<any> {
   return safeFetchJson<any>("/api/settings", {
-    method: "PUT",
+    method: "POST",
     body: JSON.stringify(settings),
   });
 }
 
-export async function testWebhook(provider: string, webhookUrl: string): Promise<any> {
-  return safeFetchJson<any>("/api/webhooks/test", {
+export async function testWebhook(platform: "DISCORD" | "SLACK", webhookUrl: string): Promise<any> {
+  return safeFetchJson<any>("/api/alerts/test-webhook", {
     method: "POST",
-    body: JSON.stringify({ provider, webhookUrl }),
+    body: JSON.stringify({ platform, webhookUrl }),
   });
 }
 
-export async function runVulnerabilityScan(): Promise<any> {
-  return safeFetchJson<any>("/api/vulnerability/scan", {
+// Authentication server endpoints
+export async function registerWithServerApi(name: string, email: string, password: string): Promise<any> {
+  return safeFetchJson<any>("/api/auth/register", {
     method: "POST",
+    body: JSON.stringify({ name, email, password }),
   });
 }
 
-export async function clearAllHistory(): Promise<any> {
-  return safeFetchJson<any>("/api/history", {
-    method: "DELETE",
+export async function loginWithServerApi(email: string, password: string): Promise<any> {
+  return safeFetchJson<any>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
   });
 }
-
-
-
 
 export async function sendAuthOtp(
   email: string,
@@ -750,40 +189,14 @@ export async function sendAuthOtp(
 
 export async function verifyAuthOtp(
   email: string,
-  otp: string
-): Promise<{ verified: boolean; email: string; role: string; user: any; token: string }> {
-  return safeFetchJson<{ verified: boolean; email: string; role: string; user: any; token: string }>(
+  otpCode: string,
+  purpose: string = "login"
+): Promise<{ message: string; token?: string; user?: any; verified: boolean }> {
+  return safeFetchJson<{ message: string; token?: string; user?: any; verified: boolean }>(
     "/api/auth/verify-otp",
     {
       method: "POST",
-      body: JSON.stringify({ email, otp }),
-    }
-  );
-}
-
-export async function registerWithServerApi(
-  name: string,
-  email: string,
-  password?: string
-): Promise<{ success: boolean; data: { user: any; token: string }; message: string }> {
-  return safeFetchJson<{ success: boolean; data: { user: any; token: string }; message: string }>(
-    "/api/auth/register",
-    {
-      method: "POST",
-      body: JSON.stringify({ name, email, password }),
-    }
-  );
-}
-
-export async function loginWithServerApi(
-  email: string,
-  password?: string
-): Promise<{ success: boolean; data: { user: any; token: string }; message: string }> {
-  return safeFetchJson<{ success: boolean; data: { user: any; token: string }; message: string }>(
-    "/api/auth/login",
-    {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, otpCode, purpose }),
     }
   );
 }
@@ -795,56 +208,16 @@ export async function deleteAccountApi(email: string): Promise<any> {
   });
 }
 
+// Quick Scan
 export async function runQuickScan(query: string, typeHint?: string): Promise<QuickScanResult> {
-  const trimmed = query.trim();
-  const isHash = /^[a-fA-F0-9]{32}$|^[a-fA-F0-9]{40}$|^[a-fA-F0-9]{64}$/.test(trimmed);
-  const isSuspicious = trimmed.includes("lockbit") || trimmed.includes("trojan") || trimmed.includes("phish") || trimmed.includes("apple") || trimmed.includes("verify") || trimmed.includes("login") || trimmed.startsWith("24f9") || trimmed.startsWith("a81d") || trimmed.includes("185.220");
-
-  const clientFallback: QuickScanResult = {
-    id: "qs_" + Date.now(),
-    inputType: isHash ? (trimmed.length === 64 ? "HASH_SHA256" : trimmed.length === 40 ? "HASH_SHA1" : "HASH_MD5") : "URL",
-    query: trimmed,
-    normalizedQuery: trimmed.toLowerCase(),
-    verdict: isSuspicious ? "MALICIOUS" : "CLEAN",
-    threatLevel: isSuspicious ? "CRITICAL" : "SAFE",
-    threatName: isSuspicious ? (isHash ? "Trojan.Win32.GenericPayload" : "High-Risk Credential Harvester") : "Clean Entity",
-    riskScore: isSuspicious ? 92 : 8,
-    confidence: 0.94,
-    analysisSummary: isSuspicious 
-      ? `Threat signature detected matching known adversary infrastructure. Multi-engine heuristic evaluation flagged anomalous artifacts.`
-      : `No malicious indicators identified across security databases. Domain and structural syntax verified clean.`,
-    enginesDetected: isSuspicious ? 58 : 0,
-    enginesTotal: 72,
-    tags: isSuspicious ? ["adversary-infra", "credential-theft", "untrusted"] : ["benign", "verified"],
-    vendorDetections: isSuspicious ? [
-      { engine: "Kaspersky", category: "malicious", result: "HEUR:Trojan.Win32.Generic" },
-      { engine: "Microsoft Defender", category: "malicious", result: "Trojan:Win32/Wacatac.B!ml" },
-      { engine: "CrowdStrike Falcon", category: "malicious", result: "win/malicious_confidence_100%" },
-      { engine: "BitDefender", category: "malicious", result: "Gen:Variant.Bredolab.26412" }
-    ] : [],
-    details: {
-      urlFeatures: !isHash ? {
-        hasHttps: trimmed.startsWith("https://"),
-        dotsCount: (trimmed.match(/\./g) || []).length,
-        hyphensCount: (trimmed.match(/-/g) || []).length,
-        suspiciousKeywordsCount: isSuspicious ? 2 : 0,
-        isIpAddress: /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(trimmed)
-      } : undefined,
-      hashDetails: isHash ? {
-        algorithm: trimmed.length === 64 ? "SHA-256" : trimmed.length === 40 ? "SHA-1" : "MD5",
-        entropy: isSuspicious ? "7.84" : "5.12",
-        suggestedFamily: isSuspicious ? "Win32.Trojan.Generic" : "Standard Application Binary"
-      } : undefined
-    },
-    scannedAt: new Date().toISOString()
-  };
-
-  return safeFetchJson<QuickScanResult>(
-    "/api/quick-scan",
-    {
-      method: "POST",
-      body: JSON.stringify({ query: trimmed, typeHint }),
-    },
-    clientFallback
-  );
+  return safeFetchJson<QuickScanResult>("/api/quick-scan", {
+    method: "POST",
+    body: JSON.stringify({ query, typeHint }),
+  });
 }
+
+// Clear History & Cache
+export async function clearAllHistory(): Promise<any> {
+  return safeFetchJson<any>("/api/history", { method: "DELETE" });
+}
+

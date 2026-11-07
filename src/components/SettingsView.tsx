@@ -15,16 +15,10 @@ export default function SettingsView({ isDarkMode = true, onToggleTheme }: Setti
     isAdmin, 
     emailVerified, 
     logout, 
-    deleteCurrentAccount,
-    resendVerificationEmail, 
-    sendEmailOtp,
-    checkEmailVerificationStatus 
+    deleteCurrentAccount
   } = useAuth();
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [checking, setChecking] = useState(false);
-  const [verificationFeedback, setVerificationFeedback] = useState<string | null>(null);
   const [purging, setPurging] = useState(false);
   
   // Account deletion state
@@ -48,40 +42,6 @@ export default function SettingsView({ isDarkMode = true, onToggleTheme }: Setti
       alert("Failed to clear data: " + (e.message || "Unknown error"));
     } finally {
       setPurging(false);
-    }
-  };
-
-  const handleResend = async () => {
-    if (!user?.email) return;
-    setResending(true);
-    setVerificationFeedback(null);
-    try {
-      const res = await sendEmailOtp(user.email, "profile_verification");
-      setVerificationFeedback(`Verification OTP (${res.otpCode || "dispatched"}) sent to ${user.email}. Check inbox or sign-in modal to verify.`);
-    } catch (e: any) {
-      const ok = await resendVerificationEmail();
-      if (ok) {
-        setVerificationFeedback(`Verification email sent to ${user.email}. Please check your inbox.`);
-      } else {
-        setVerificationFeedback("Could not send verification email. Please try again.");
-      }
-    } finally {
-      setResending(false);
-    }
-  };
-
-  const handleCheckStatus = async () => {
-    setChecking(true);
-    setVerificationFeedback(null);
-    try {
-      const verified = await checkEmailVerificationStatus();
-      if (verified) {
-        setVerificationFeedback("Email is verified! Access confirmed.");
-      } else {
-        setVerificationFeedback("Email not verified yet. Please enter the OTP code received in your email.");
-      }
-    } finally {
-      setChecking(false);
     }
   };
 
@@ -150,7 +110,7 @@ export default function SettingsView({ isDarkMode = true, onToggleTheme }: Setti
             <span>Settings & Identity</span>
           </h1>
           <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
-            Manage credentials, Firestore profile synchronization, security roles, system preferences, and API access credentials.
+            Manage credentials, security roles, system preferences, and API access credentials.
           </p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -191,7 +151,7 @@ export default function SettingsView({ isDarkMode = true, onToggleTheme }: Setti
               </span>
             ) : user ? (
               <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-950/80 text-blue-400 border border-blue-800">
-                SOC OPERATOR
+                NORMAL USER
               </span>
             ) : (
               <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
@@ -214,28 +174,35 @@ export default function SettingsView({ isDarkMode = true, onToggleTheme }: Setti
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{user?.displayName || (user ? user.email?.split("@")[0] : "Not Signed In")}</p>
-                  <p className="text-[11px] text-zinc-600 dark:text-zinc-400 truncate">{user?.email || "Sign in using Google or Email & Password"}</p>
+                  <p className="text-[11px] text-zinc-600 dark:text-zinc-400 truncate">{user?.email || "Sign in using Database Credentials or Google SSO"}</p>
                 </div>
               </div>
             </div>
 
-            {/* Firestore Synchronization Status */}
+            {/* Firebase Authentication & Security */}
             <div>
-              <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Database & Verification</label>
+              <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Firebase Authentication & Security</label>
               <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-900 rounded">
                 {user ? (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-bold text-emerald-400 block">[Synced] Firestore Profile Active</span>
-                      <span className="text-[10px] text-zinc-500 font-sans block mt-0.5">Stored in /users/{user.uid} with instant authentication</span>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-emerald-400">
+                        ✓ Account Active & Ready
+                      </span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border bg-emerald-950/60 text-emerald-400 border-emerald-800">
+                        Active
+                      </span>
                     </div>
-                    <span className="text-[10px] text-emerald-400 font-mono px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-800">
-                      Active
-                    </span>
+                    <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono pt-1 border-t border-zinc-200 dark:border-zinc-800/80">
+                      <span>Auth Provider:</span>
+                      <span className="text-zinc-200">
+                        {user.providerData?.[0]?.providerId === "google.com" ? "Google SSO" : "Firebase Email/Password"}
+                      </span>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between text-xs text-zinc-500">
-                    <span>Sign in to persist your profile in Firestore</span>
+                    <span>Sign in to activate Firebase session</span>
                     <button
                       onClick={() => setAuthModalOpen(true)}
                       className="text-emerald-400 underline font-sans text-[11px] cursor-pointer"

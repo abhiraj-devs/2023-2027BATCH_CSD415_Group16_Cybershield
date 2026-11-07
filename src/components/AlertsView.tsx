@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Bell, AlertTriangle, CheckCircle2, Send, Settings, ShieldAlert} from "lucide-react";
+import { Bell, AlertTriangle, CheckCircle2, Send, Settings, ShieldAlert, FileText, Download } from "lucide-react";
 import { SecurityAlert } from "../types";
 import { fetchAlerts, acknowledgeAlert, fetchSettings, updateSettings, testWebhook } from "../services/api";
+import { downloadSecurityOverviewPDF } from "../services/pdfExport";
 
 export default function AlertsView() {
   const [alerts, setAlerts] = useState<SecurityAlert[]>([]);
   const [settings, setSettings] = useState({ discordWebhookUrl: "", slackWebhookUrl: "", minSeverity: "MEDIUM" });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [pdfDownloading, setPdfDownloading] = useState(false);
+  const [pdfSuccess, setPdfSuccess] = useState(false);
 
   useEffect(() => {
     fetchAlerts().then(setAlerts).catch(() => {});
@@ -53,6 +56,23 @@ export default function AlertsView() {
     }
   };
 
+  const handleExportPDF = () => {
+    setPdfDownloading(true);
+    try {
+      downloadSecurityOverviewPDF({
+        alerts,
+        reportTitle: "CyberShield SOC Security Alerts & Incident Queue Report",
+        generatedBy: "SOC Lead Incident Responder",
+      });
+      setPdfSuccess(true);
+      setTimeout(() => setPdfSuccess(false), 2500);
+    } catch (err) {
+      console.error("Failed to export alerts PDF:", err);
+    } finally {
+      setPdfDownloading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-6 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800">
@@ -64,6 +84,18 @@ export default function AlertsView() {
           <p className="text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm mt-1">
             Manage live security alerts and configure external webhooks.
           </p>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleExportPDF}
+            disabled={pdfDownloading}
+            className="px-3.5 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-colors flex items-center space-x-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+            title="Export current security overview and alerts summary as a formatted PDF"
+          >
+            <FileText size={14} />
+            <span>{pdfSuccess ? "PDF Exported!" : pdfDownloading ? "Generating PDF..." : "Export Alerts PDF"}</span>
+          </button>
         </div>
       </div>
 

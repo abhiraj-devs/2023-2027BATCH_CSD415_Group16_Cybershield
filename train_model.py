@@ -9,7 +9,6 @@ from sklearn.metrics import classification_report
 import joblib
 from features import extract_url_features
 
-# Curated dataset of known legitimate and phishing URL patterns for initial training
 training_data = [
     # Legitimate (label = 0)
     ("https://www.google.com", 0),
@@ -88,7 +87,7 @@ def main():
     
     output_filename = "phishing_rf_model.joblib"
     joblib.dump(artifacts, output_filename, compress=3)
-    print(f"SUCCESS! Created '{output_filename}' ({round(len(joblib.load(output_filename)['feature_names']))} features saved).")
+    print(f"SUCCESS! Created '{output_filename}'.")
 
 if __name__ == "__main__":
     main()

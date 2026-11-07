@@ -1,0 +1,37 @@
+{\renewcommand{\baselinestretch}{1.0}\small
+\renewcommand{\arraystretch}{1.2}
+\begin{longtable}{|p{2.1cm}|p{0.9cm}|p{2.3cm}|p{4.1cm}|p{3.9cm}|}
+\caption{Periodic task allocation and progress log from the project diary (Group 16)}\label{tab:periodic}\\
+\hline
+\textbf{Period} & \textbf{Roll} & \textbf{Member} & \textbf{Work assigned} & \textbf{Work done} \\ \hline
+
+15/07/2026 -- 29/07/2026 & 59 & Sreedevi R P & Identify 1 project topic and draft problem statement & Researched candidate project domains and drafted the initial problem statement for CyberShield AI \\ \cline{2-5}
+ & 65 & Vishnu V Nair & Identify 1 project topic and detail users/benefits & Researched candidate project topic, analyzed end-user personas and defined key operational benefits \\ \cline{2-5}
+ & 66 & Abhi Raj & Identify 1 project topic and present abstract & Formulated topic proposal, conducted preliminary feasibility study and presented the final project abstract \\ \hline
+
+30/07/2026 -- 12/08/2026 & 59 & Sreedevi R P & Read 4 research papers and draft literature survey & Reviewed 4 academic papers on ML phishing detection and drafted the initial literature survey report \\ \cline{2-5}
+ & 65 & Vishnu V Nair & Read 4 research papers and prepare presentation & Reviewed 4 papers on malware analysis and feature engineering; prepared and delivered zeroth review slides \\ \cline{2-5}
+ & 66 & Abhi Raj & Read 4 research papers; feasibility study and zeroth review & Reviewed 4 papers on explainable AI and SIEM architectures; conducted technical feasibility analysis for zeroth review \\ \hline
+
+13/08/2026 -- 26/08/2026 & 59 & Sreedevi R P & Submit SRS report & Finalized and submitted the Software Requirements Specification (SRS) document covering functional and non-functional requirements \\ \cline{2-5}
+ & 65 & Vishnu V Nair & Decompose project into functional requirements & Decomposed system into functional modules (FR-01 to FR-07) and defined URL and malware analysis requirements \\ \cline{2-5}
+ & 66 & Abhi Raj & Design the project architecture & Created the 4-tier system design architecture, Level 0 context DFD, and Level 1 decomposed data flow models \\ \hline
+
+27/08/2026 -- 09/09/2026 & 59 & Sreedevi R P & Submit the project design report & Completed and submitted the comprehensive project design report including UML models and use-case diagrams \\ \cline{2-5}
+ & 65 & Vishnu V Nair & Implementation of the project features & Developed user-friendly dashboard interfaces, prototype wireframes, and preliminary feature extraction routines \\ \cline{2-5}
+ & 66 & Abhi Raj & Implementation of the project base paper & Full-stack implementation (frontend \& backend) of base paper concepts; setup Express REST server and React Vite scaffold \\ \hline
+
+10/09/2026 -- 23/09/2026 & 59 & Sreedevi R P & Design and implement frontend UI for Phishing, Malware, and Network dashboards & Successfully built and styled UI components for Phishing and Malware views, including interactive charts and visual alerts \\ \cline{2-5}
+ & 65 & Vishnu V Nair & Develop backend pipelines, configure automated alerts engine, and implement audit logging & Implemented threat intelligence aggregation pipeline, real-time alerts system, and historical scan audit logging \\ \cline{2-5}
+ & 66 & Abhi Raj & Manage system integration, implement RBAC, write testing suites, and draft API documentation & Developed AuthContext for direct user login/RBAC, finalized API documentation, and created unit tests for core endpoints \\ \hline
+
+24/09/2026 -- 07/10/2026 & 59 & Sreedevi R P & Author project research paper and conduct web scraping feasibility study for threat feeds & Completed IEEE format research paper draft; conducted feasibility study for live OSINT web scraping and threat feeds \\ \cline{2-5}
+ & 65 & Vishnu V Nair & Build and train the Random Forest Phishing URL Classifier with feature extraction pipeline & Developed and trained Random Forest model with 15 lexical and structural URL features (train\_model.py, features.py) \\ \cline{2-5}
+ & 66 & Abhi Raj & Integrate ML model into backend, build dual-engine detection, and harden system stability & Integrated RF model into website API, engineered Two-Way Dual-Engine consensus architecture, and hardened database lifecycles \\ \hline
+
+08/10/2026 -- 13/10/2026 & 59 & Sreedevi R P & Finalize publication paper (IEEE format), literature gap analysis, and state funding grant proposals & Completed publication-grade IEEE LaTeX research paper, formulated 12-paper gap matrix, and authored KSCSTE and KSUM grant proposals \\ \cline{2-5}
+ & 65 & Vishnu V Nair & Structure and compile final presentation deck with architecture, DFDs, and evaluation metrics & Authored complete 16-slide final presentation deck with system models, evaluation metrics, and speaker notes \\ \cline{2-5}
+ & 66 & Abhi Raj & System performance audits, latency optimization, DFD diagram fixes, and end-to-end testing & Executed full-stack code optimizations ($<$2.0s scan latency), corrected DFD diagrams, verified build stability, and compiled Phase 1 release \\ \hline
+
+\end{longtable}
+}

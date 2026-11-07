@@ -1,7 +1,6 @@
 import re
 import math
 from urllib.parse import urlparse
-import tldextract
 
 def calculate_entropy(text: str) -> float:
     """Calculates Shannon entropy to detect randomized/obfuscated strings."""
@@ -18,15 +17,13 @@ def extract_url_features(url: str) -> dict:
     """Extracts 15 lexical and structural features from a raw URL string."""
     clean_url = url.strip()
     parsed = urlparse(clean_url if "://" in clean_url else "http://" + clean_url)
-    extracted = tldextract.extract(clean_url)
     
-    domain = f"{extracted.domain}.{extracted.suffix}" if extracted.suffix else extracted.domain
-    subdomain = extracted.subdomain
+    host_only = parsed.netloc.split(":")[0]
+    domain = host_only
     path = parsed.path
     query = parsed.query
 
     # IP address detection in host (e.g. http://192.168.1.1/login)
-    host_only = parsed.netloc.split(":")[0]
     has_ip = 1 if re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", host_only) else 0
 
     # Common phishing keywords
@@ -36,6 +33,9 @@ def extract_url_features(url: str) -> dict:
     # URL shorteners (bit.ly, tinyurl, etc.)
     shorteners = {"bit.ly", "tinyurl.com", "t.co", "goo.gl", "ow.ly", "is.gd", "buff.ly", "adf.ly"}
     is_shortened = 1 if domain.lower() in shorteners else 0
+
+    subdomains = host_only.split(".")
+    num_subdomains = max(0, len(subdomains) - 2)
 
     return {
         "url_length": len(clean_url),
@@ -47,7 +47,7 @@ def extract_url_features(url: str) -> dict:
         "num_at": clean_url.count("@"),
         "num_slash": clean_url.count("/"),
         "num_digits": sum(c.isdigit() for c in clean_url),
-        "num_subdomains": len(subdomain.split(".")) if subdomain else 0,
+        "num_subdomains": num_subdomains,
         "is_https": 1 if parsed.scheme == "https" else 0,
         "has_ip_address": has_ip,
         "is_shortened": is_shortened,

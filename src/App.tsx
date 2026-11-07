@@ -32,7 +32,7 @@ function MainApp() {
     }
   });
   const [searchQuery, setSearchQuery] = useState("");
-  const [runTour] = useState(true);
+  const [runTour] = useState(false);
 
   useEffect(() => {
     try {
@@ -84,7 +84,9 @@ function MainApp() {
     return () => clearInterval(interval);
   }, []);
 
-  const criticalAlertsCount = alerts.filter(a => !a.acknowledged && (a.severity === 'CRITICAL' || a.severity === 'HIGH')).length;
+  const criticalAlertsCount = alerts.filter(
+    (a) => !a.acknowledged && (a.severity === "CRITICAL" || a.severity === "HIGH")
+  ).length;
 
   return (
     <Layout
@@ -106,7 +108,7 @@ function MainApp() {
           networkEvents={networkEvents}
           threatIntel={threatIntel}
           onNavigate={setActiveTab}
-          onOpenQuickScan={() => window.dispatchEvent(new CustomEvent('open-quick-scan'))}
+          onOpenQuickScan={() => setActiveTab("phishing")}
         />
       )}
       {activeTab === "phishing" && <PhishingView />}
@@ -119,7 +121,7 @@ function MainApp() {
       {activeTab === "settings" && (
         <SettingsView 
           isDarkMode={isDarkMode} 
-          onToggleTheme={() => setIsDarkMode(prev => !prev)} 
+          onToggleTheme={() => setIsDarkMode((prev) => !prev)} 
         />
       )}
     </Layout>

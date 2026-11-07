@@ -8,21 +8,22 @@ Project Group Number: 16
 
 +-------------------+----------------------------+----------------------------+----------------------------+--------------------+
 | Who?              | Work Assigned              | Work Done                  | Work Scheduled for next    | Assessment by      |
-|                   |                            |                            | Phase / Evaluation         | Guide              |
+|                   |                            |                            | Phase (Future Scope)       | Guide              |
 +-------------------+----------------------------+----------------------------+----------------------------+--------------------+
-| Roll No: 59       | Finalize publication paper | Completed publication-grade| Camera-ready review, final |                    |
-| Sreedevi R P      | (IEEE format), literature  | IEEE LaTeX research paper  | viva preparation, and      |                    |
-|                   | gap analysis, and state    | and authored state funding | project defense.           |                    |
-|                   | funding grant proposals.   | grant proposals.           |                            |                    |
+| Roll No: 59       | Finalize publication paper | Completed publication-grade| Phase 2: Email phishing    |                    |
+| Sreedevi R P      | (IEEE format), literature  | IEEE LaTeX research paper  | analyzer, exportable PDF   |                    |
+|                   | gap analysis, and state    | and authored state funding | threat reports, and open   |                    |
+|                   | funding grant proposals.   | grant proposals.           | threat feed integrations.  |                    |
 +-------------------+----------------------------+----------------------------+----------------------------+--------------------+
-| Roll No: 65       | Structure and compile the  | Authored complete 16-slide | Slide timing rehearsal,    |                    |
-| Vishnu V Nair     | final presentation deck    | final presentation deck    | viva demonstration drill,  |                    |
-|                   | with architecture, DFDs,   | with system models and     | and technical defense.     |                    |
-|                   | and evaluation metrics.    | performance metrics.       |                            |                    |
+| Roll No: 65       | Structure and compile the  | Authored complete 16-slide | Phase 2: Dataset expansion |                    |
+| Vishnu V Nair     | final presentation deck    | final presentation deck    | (50k+ URLs), model tuning  |                    |
+|                   | with architecture, DFDs,   | with system models and     | for threat category types, |                    |
+|                   | and evaluation metrics.    | and automated retraining.  |                            |
 +-------------------+----------------------------+----------------------------+----------------------------+--------------------+
-| Roll No: 66       | System performance audits, | Executed full-stack code   | Final project submission,  |                    |
-| Abhi Raj          | latency optimization, DFD  | optimizations, fixed DFD   | live demo staging, and     |                    |
-|                   | diagram fixes, and testing.| errors, and hardened build.| end-to-end audit.          |                    |
+| Roll No: 66       | System performance audits, | Executed full-stack code   | Phase 2: Chrome browser    |                    |
+| Abhi Raj          | latency optimization, DFD  | optimizations, fixed DFD   | extension, Telegram/Email  |                    |
+|                   | diagram fixes, and testing.| errors, and hardened build.| alert webhooks, and live   |                    |
+|                   |                            |                            | cloud server deployment.   |                    |
 +-------------------+----------------------------+----------------------------+----------------------------+--------------------+
 
 PROJECT UPDATE: FINAL PRESENTATION, IEEE PAPER, SYSTEM OPTIMIZATION & BUG FIXES (WEEK 8)
@@ -125,3 +126,53 @@ C. ABHI RAJ (Roll No: 66) - FULL-STACK OPTIMIZATION, BUG FIXES & SYSTEM VALIDATI
 - Optimized Server & APIs:     /server.ts (/api/phishing/analyze, /api/malware/scan)
 - Optimized Frontend Views:    /src/components/PhishingView.tsx, /src/components/Dashboard.tsx
 - Feature Extraction Engine:   /features.py, /train_model.py
+
+=========================================================================================
+3. WORK SCHEDULED FOR NEXT PHASE (PHASE 2 FUTURE ROADMAP & ENHANCEMENTS)
+=========================================================================================
+
+A. SREEDEVI R P (Roll No: 59) - EMAIL PHISHING MODULE & THREAT REPORT GENERATION
+-----------------------------------------------------------------------------------------
+1. Dedicated Email Phishing Analyzer Module:
+   - Build a specialized UI view allowing users to paste email text, headers, or upload raw .eml files.
+   - Implement heuristics to verify sender authenticity (checking discrepancies between display names and sender domains, SPF/DKIM flags, and urgent coercive language).
+   - Extract and cross-examine all embedded hyperlinks inside email bodies using the CyberShield URL scanning engine.
+
+2. Exportable PDF Security Audit Reports:
+   - Implement one-click client-side / server-side PDF generation for phishing and malware scans.
+   - Include timestamp, threat severity badge, feature breakdown table, AI explanation summary, and recommended containment steps for compliance records.
+
+3. Open-Source Threat Feed Integration:
+   - Ingest free, regularly updated threat feeds from public blacklists (URLhaus, OpenPhish, and AbuseIPDB).
+   - Maintain a local fast-lookup cache to identify known malicious domains instantly before running full heuristics.
+
+
+B. VISHNU V NAIR (Roll No: 65) - DATASET EXPANSION & MODEL ACCURACY ENHANCEMENTS
+-----------------------------------------------------------------------------------------
+1. Training Dataset Expansion:
+   - Expand the current training corpus by downloading 50,000+ newly verified malicious and benign URLs from PhishTank, Kaggle, and Alexa Top 1M domains.
+   - Clean, balance, and re-sample the dataset to prevent class imbalance issues.
+
+2. Feature Engineering & Multi-Category Classification:
+   - Add extra structural features to the 15-feature extractor (e.g., punycode/homograph character detection, subdomain depth, query parameter entropy, and HTTPS certificate validity checks).
+   - Extend the Random Forest model to predict specific threat categories (e.g., credential harvesting, banking spoof, tech support scams, and malware download lures).
+
+3. Model Re-Training & Validation Benchmarks:
+   - Conduct systematic hyperparameter tuning (n_estimators, max_depth, min_samples_split) using 5-fold cross-validation.
+   - Build an automated evaluation script that outputs updated confusion matrices, ROC-AUC curves, precision, and recall metrics.
+
+
+C. ABHI RAJ (Roll No: 66) - BROWSER EXTENSION, ALERT WEBHOOKS & CLOUD HOSTING
+-----------------------------------------------------------------------------------------
+1. Real-Time Google Chrome Browser Extension:
+   - Develop a lightweight Manifest V3 Chromium browser extension connected to the CyberShield backend API.
+   - Intercept navigation events on active tabs to check URLs against the detection engine in real time.
+   - Display a non-intrusive green badge for verified secure sites and a modal warning barrier before the user accesses confirmed phishing pages.
+
+2. Real-Time Alert Notifications (Telegram / Discord Webhooks & Email):
+   - Configure instant webhook dispatchers to send immediate security alerts to a designated Telegram Bot, Discord channel, or SOC email address when high-severity threats (> 80% risk) are detected.
+   - Provide summary data in alerts including URL, threat category, client IP, and direct link to the CyberShield dashboard.
+
+3. Live Cloud Server Deployment & Scheduled Maintenance:
+   - Deploy the CyberShield web application and Express backend onto a persistent cloud environment (Render / Google Cloud Run / Vercel).
+   - Configure scheduled daily backups for Firestore threat logs and history records with automated health checks.

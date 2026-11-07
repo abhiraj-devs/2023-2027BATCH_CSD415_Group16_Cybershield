@@ -1,0 +1,55 @@
+CYBERSHIELD AI - MODULE 6: AUTOMATED ALERTS & INCIDENT RESPONSE
+=========================================================================================
+Module ID: MOD-ALERT-06
+Component Path: /src/components/AlertsView.tsx
+Backend Routes:
+  - GET  /api/alerts
+  - POST /api/alerts/:id/acknowledge
+  - GET  /api/settings
+  - POST /api/settings
+  - POST /api/alerts/test-webhook
+
+-----------------------------------------------------------------------------------------
+1. OVERVIEW & PURPOSE
+-----------------------------------------------------------------------------------------
+The Alerts & Incident Response Module provides an automated early-warning triage center for
+critical cybersecurity events. Whenever high-severity threats are detected across the Phishing,
+Malware, or Network modules, incidents are prioritized, logged, and broadcasted to enterprise
+communication endpoints (Discord and Slack webhooks).
+
+-----------------------------------------------------------------------------------------
+2. KEY FEATURES & CAPABILITIES
+-----------------------------------------------------------------------------------------
+1. Automated Incident Event Generation:
+   - High-risk phishing scans (score > 65), confirmed malware hashes, and severe network
+     anomalies automatically spawn structured alert tickets.
+2. Multi-Channel Webhook Dispatcher:
+   - Discord Webhooks: Dispatches formatted embed notifications with incident timestamps,
+     severity colors (red for CRITICAL, orange for HIGH), and target IoC details.
+   - Slack Incoming Webhooks: Formats blocks with quick-action links directly to the
+     CyberShield dashboard.
+   - Live Webhook Verification: Built-in testing trigger with instant delivery feedback.
+3. Severity Prioritization Matrix:
+   - Categorizes alerts into CRITICAL, HIGH, MEDIUM, LOW, and INFO.
+   - Allows administrators to configure a minimum severity threshold (e.g., only broadcast
+     MEDIUM and above) to prevent alert fatigue.
+4. Incident Acknowledgment State Machine:
+   - SOC analysts can review active incidents and mark them as `Acknowledged` with a single
+     click, recording the triage timestamp and updating the SOC readiness score.
+
+-----------------------------------------------------------------------------------------
+3. DATA MODELS & STRUCTURES
+-----------------------------------------------------------------------------------------
+SecurityAlert Object:
+{
+  id: string,
+  eventType: "PHISHING_DETECTED" | "MALWARE_DETECTED" | "NETWORK_ANOMALY" | "SYSTEM_AUDIT",
+  severity: "INFO" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
+  title: string,
+  message: string,
+  source: string,
+  acknowledged: boolean,
+  webhookStatus: "sent" | "failed" | "pending" | "disabled",
+  createdAt: string (ISO 8601)
+}
+=========================================================================================

@@ -1,16 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { 
   ShieldAlert, 
-   
-   
-   
-   
   TrendingUp, 
   ShieldCheck, 
-  
   Activity,
   ArrowUpRight,
   Download,
+  FileText,
+  SlidersHorizontal,
   Zap
 } from "lucide-react";
 import { 
@@ -26,6 +23,8 @@ import {
   CartesianGrid 
 } from "recharts";
 import { DashboardSummary, SecurityAlert, NetworkEvent, ThreatItem } from "../types";
+import { downloadSecurityOverviewPDF } from "../services/pdfExport";
+import PDFExportModal from "./PDFExportModal";
 
 interface DashboardViewProps {
   summary: DashboardSummary | null;
@@ -54,6 +53,28 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function DashboardView({
   summary, alerts, networkEvents, threatIntel, onNavigate, onOpenQuickScan}: DashboardViewProps) {
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [pdfDownloading, setPdfDownloading] = useState(false);
+  const [pdfSuccess, setPdfSuccess] = useState(false);
+
+  const handleQuickExportPDF = () => {
+    setPdfDownloading(true);
+    try {
+      downloadSecurityOverviewPDF({
+        summary,
+        alerts,
+        networkEvents,
+        threatIntel,
+        generatedBy: "SOC Lead Analyst",
+      });
+      setPdfSuccess(true);
+      setTimeout(() => setPdfSuccess(false), 2500);
+    } catch (err) {
+      console.error("Failed to generate PDF:", err);
+    } finally {
+      setPdfDownloading(false);
+    }
+  };
   
   const handleDownloadReport = () => {
     let csv = "Type,ID,Timestamp,Severity/Status,Detail\n";
@@ -100,6 +121,15 @@ export default function DashboardView({
 
   return (
     <div className="space-y-6">
+      <PDFExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        summary={summary}
+        alerts={alerts}
+        networkEvents={networkEvents}
+        threatIntel={threatIntel}
+      />
+
       {/* Top Banner / Welcome */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 sm:gap-6 p-4 sm:p-6 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800">
         <div className="space-y-1.5 sm:space-y-2 max-w-2xl min-w-0">
@@ -128,20 +158,42 @@ export default function DashboardView({
           )}
           <button
             onClick={() => onNavigate('phishing')}
-            className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded text-zinc-950 bg-zinc-100 hover:bg-white font-semibold text-xs transition-colors flex items-center justify-center space-x-1.5"
+            className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded text-zinc-950 bg-zinc-100 hover:bg-white font-semibold text-xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer"
           >
             <span>Scan URL</span>
             <ArrowUpRight size={14} />
           </button>
           <button
             onClick={() => onNavigate('malware')}
-            className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-semibold text-xs transition-colors text-center"
+            className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-semibold text-xs transition-colors text-center cursor-pointer"
           >
             Scan Hash
           </button>
+
+          {/* Formatted PDF Export Button Group */}
+          <div className="flex items-center rounded overflow-hidden shadow-xs border border-blue-600/30 dark:border-blue-500/40 bg-blue-600/10 dark:bg-blue-950/40">
+            <button
+              onClick={handleQuickExportPDF}
+              disabled={pdfDownloading}
+              className="px-3 sm:px-3.5 py-2 hover:bg-blue-600/20 text-blue-700 dark:text-blue-300 font-semibold text-xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer"
+              title="Export formatted PDF security overview and alerts summary"
+            >
+              <FileText size={14} className="text-blue-600 dark:text-blue-400" />
+              <span>{pdfSuccess ? "PDF Downloaded!" : pdfDownloading ? "Generating..." : "Export PDF"}</span>
+            </button>
+            <button
+              onClick={() => setShowExportModal(true)}
+              className="px-2 py-2 border-l border-blue-600/20 dark:border-blue-500/30 hover:bg-blue-600/20 text-blue-700 dark:text-blue-300 transition-colors cursor-pointer"
+              title="Customize PDF export options (severity filter, telemetry, analyst)"
+            >
+              <SlidersHorizontal size={13} />
+            </button>
+          </div>
+
           <button
             onClick={handleDownloadReport}
-            className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-semibold text-xs transition-colors flex items-center justify-center space-x-1.5"
+            className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-semibold text-xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer"
+            title="Export raw CSV data"
           >
             <Download size={14} />
             <span>Export CSV</span>
@@ -178,6 +230,33 @@ export default function DashboardView({
         </div>
       </div>
 
+      {/* Inference Performance Monitor */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+          <div>
+            <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-1">Deep Learning Inference Latency</div>
+            <div className="flex items-baseline space-x-2">
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 font-mono">15.85</span>
+              <span className="text-sm text-zinc-500 font-mono">ms / request</span>
+            </div>
+          </div>
+          <div className="w-10 h-10 rounded bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+            <Activity size={18} className="text-blue-500" />
+          </div>
+        </div>
+        <div className="p-4 rounded-md bg-white dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+          <div>
+            <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-1">Request Processing Rate</div>
+            <div className="flex items-baseline space-x-2">
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 font-mono">145</span>
+              <span className="text-sm text-zinc-500 font-mono">req / s</span>
+            </div>
+          </div>
+          <div className="w-10 h-10 rounded bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
+            <Zap size={18} className="text-purple-500" />
+          </div>
+        </div>
+      </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

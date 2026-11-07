@@ -1,0 +1,70 @@
+CYBERSHIELD AI - MODULE 5: REAL-TIME GLOBAL THREAT INTELLIGENCE (OSINT & FEEDS)
+=========================================================================================
+Module ID: MOD-INTEL-05
+Component Path: /src/components/ThreatIntelView.tsx
+Backend Routes:
+  - GET  /api/threat-intel
+  - POST /api/threat-intel/refresh
+  - GET  /api/threat-intel/virustotal-status
+  - GET  /api/threat-intel/virustotal-lookup/:indicator
+
+-----------------------------------------------------------------------------------------
+1. OVERVIEW & PURPOSE
+-----------------------------------------------------------------------------------------
+The Threat Intelligence Module ingests, normalizes, and correlates Indicators of Compromise
+(IoCs) across premier open-source and commercial security telemetry networks. It provides
+SOC analysts with a unified, searchable tactical threat feed categorized by CVEs, malicious
+IP clusters, botnet command-and-control (C2) domains, and ransomware file hashes.
+
+-----------------------------------------------------------------------------------------
+2. INTEGRATED INTEL SOURCES & VENDORS
+-----------------------------------------------------------------------------------------
+1. CISA Known Exploited Vulnerabilities (KEV Catalog):
+   - Ingests US Department of Homeland Security / CISA catalog of actively weaponized CVEs.
+   - Example: CVE-2026-76461 (Zero-day Remote Code Execution in edge gateway controllers).
+2. AlienVault Open Threat Exchange (OTX Pulses):
+   - Ingests crowd-sourced threat pulses detailing active brute-force botnets (e.g., Mirai
+     scanning clusters targeting IoT devices across 14 ASN blocks).
+3. CertStream SSL Certificate Transparency Network:
+   - Real-time RFC 6962 CT log stream monitoring newly registered lookalike domains and
+     typosquats (e.g., Let's Encrypt certificates issued for spoofed Apple/PayPal portals).
+4. Local SOC Sensor Mesh (eBPF Kernel Probes):
+   - Internal sensor telemetry capturing lateral movement probes and SMB burst scans.
+5. VirusTotal v3 Multi-AV Engine Feed:
+   - Live file hash scanning aggregated across 72 antivirus engines with detailed breakdown
+     of malicious vs. suspicious vs. harmless verdicts (e.g., LockBit 3.0 Ransomware).
+
+-----------------------------------------------------------------------------------------
+3. DATA MODELS & STRUCTURES
+-----------------------------------------------------------------------------------------
+ThreatItem Object:
+{
+  id: string,
+  source: "CISA Known Exploited Vulnerabilities" | "AlienVault OTX Pulse" | 
+          "CertStream SSL Parked Domains" | "Local SOC Telemetry" | "VirusTotal Live Feed",
+  sourceOrigin: {
+    name: string,
+    type: "CISA" | "OTX" | "CERTSTREAM" | "LOCAL_SOC" | "VIRUSTOTAL",
+    endpoint: string,
+    externalUrl: string,
+    attribution: string,
+    ingestionMethod: string,
+    ingestedAt: string
+  },
+  indicatorType: "CVE" | "IP" | "DOMAIN" | "HASH",
+  indicator: string,
+  indicators: string[],
+  threatName: string,
+  severity: "INFO" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
+  description: string,
+  publishedAt: string,
+  updatedAt: string,
+  vtStats?: {
+    malicious: number,
+    suspicious: number,
+    harmless: number,
+    undetected: number,
+    total: number
+  }
+}
+=========================================================================================

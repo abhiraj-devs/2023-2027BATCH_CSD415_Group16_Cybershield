@@ -1,0 +1,64 @@
+CYBERSHIELD AI - MODULE 3: REAL-TIME NETWORK TELEMETRY & TRAFFIC ANOMALY ENGINE
+=========================================================================================
+Module ID: MOD-NET-03
+Component Path: /src/components/NetworkView.tsx
+Backend Routes:
+  - GET  /api/network/events
+  - GET  /api/network/summary
+  - POST /api/network/simulate-event
+  - GET  /api/speedtest/ping
+  - GET  /api/speedtest/download
+  - POST /api/speedtest/upload
+
+-----------------------------------------------------------------------------------------
+1. OVERVIEW & PURPOSE
+-----------------------------------------------------------------------------------------
+The Network Telemetry Module delivers continuous monitoring of local network traffic,
+bandwidth utilization, and real-time protocol activity. It incorporates an extended
+Berkeley Packet Filter (eBPF) and kernel ring-buffer probe emulation architecture that
+flags suspicious lateral movement, outbound data exfiltration, port reconnaissance, and
+DNS tunneling attempts with statistical anomaly scores.
+
+-----------------------------------------------------------------------------------------
+2. KEY FEATURES & CAPABILITIES
+-----------------------------------------------------------------------------------------
+1. Live Bandwidth Visualizer:
+   - Real-time time-series area charts powered by Recharts showing Mbps throughput
+     updated on an asynchronous 5-second sampling interval.
+2. Kernel Probe & eBPF Telemetry Stream:
+   - Captures protocol events across HTTPS (443), DNS (53), SSH (22), SMB (445), and RDP.
+   - Computes statistical anomaly scores (0 to 100) based on packet-to-byte ratios and
+     connection frequency.
+3. Network Anomaly Classification:
+   - Identifies high-risk patterns such as:
+     * Port 445 SMB Reconnaissance Bursts.
+     * Suspicious Ptrace Memory Injections across production containers.
+     * High-volume DNS Exfiltration.
+4. Integrated Live Network Diagnostic Tool (Speed & Latency):
+   - Client-server performance benchmark executing 3-phase testing:
+     * Ping Latency Test (RTT measurement in ms).
+     * Multi-chunk HTTP Download Speed Benchmark (Mbps).
+     * Synthetic HTTP POST Upload Speed Benchmark (Mbps).
+5. Automatic Incident Triggering:
+   - Traffic events with anomaly scores exceeding 60 are automatically dispatched to
+     the Security Incident Queue.
+
+-----------------------------------------------------------------------------------------
+3. DATA MODELS & STRUCTURES
+-----------------------------------------------------------------------------------------
+NetworkEvent Object:
+{
+  id: string,
+  timestamp: string (ISO 8601),
+  sourceIp: string,
+  destinationIp: string,
+  protocol: "TCP" | "UDP" | "HTTPS" | "DNS" | "SSH" | "ICMP",
+  port: number,
+  bytes: number,
+  packets: number,
+  bandwidthMbps: number,
+  severity: "INFO" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
+  anomalyScore: number (0 - 100),
+  eventType: string
+}
+=========================================================================================

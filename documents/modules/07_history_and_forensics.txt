@@ -1,0 +1,49 @@
+CYBERSHIELD AI - MODULE 7: AUDIT LOGS & SCAN FORENSICS
+=========================================================================================
+Module ID: MOD-HIST-07
+Component Path: /src/components/HistoryView.tsx
+Backend Routes:
+  - GET /api/phishing/history
+  - GET /api/malware/history
+
+-----------------------------------------------------------------------------------------
+1. OVERVIEW & PURPOSE
+-----------------------------------------------------------------------------------------
+The Audit & Scan History Module provides verifiable forensic records of all scans conducted
+across the organization. It allows security analysts to perform post-incident review, export
+historical scan records, and track threat evolution over time.
+
+-----------------------------------------------------------------------------------------
+2. KEY FEATURES & CAPABILITIES
+-----------------------------------------------------------------------------------------
+1. User-Specific Secure Scoping:
+   - Queries scans tied strictly to the authenticated user's session (`userEmail`), preventing
+     unauthorized data leakage between different analyst tenants.
+   - For unauthenticated/guest visitors, historical logs remain empty and protected by
+     privacy boundaries.
+2. Tabbed Unified Forensics Interface:
+   - Phishing Audit View: Lists target URLs, risk ratings (0-100), classifications
+     (PHISHING / SUSPICIOUS / SAFE), extracted structural features, and AI explanations.
+   - Malware Audit View: Lists scanned file names, 64-character SHA-256 hashes, detection
+     vendor ratios (e.g., 18/72 engines), and confirmed Trojan/Ransomware signatures.
+3. Cryptographic Immutability & Firestore Integration:
+   - Records are permanently mirrored to Cloud Firestore collections with ISO 8601
+     timestamps for regulatory compliance (ISO 27001, SOC 2 Type II audit readiness).
+4. One-Click Log Synchronization:
+   - Real-time client-to-server sync button with visual loading indicators.
+
+-----------------------------------------------------------------------------------------
+3. DATA MODELS & STRUCTURES
+-----------------------------------------------------------------------------------------
+Audit Record Representation:
+{
+  id: string,
+  userEmail: string,
+  targetType: "URL" | "FILE",
+  targetIdentifier: string (URL or SHA-256),
+  riskScoreOrDetections: number,
+  verdict: string,
+  timestamp: string (ISO 8601),
+  metadata: object (Features, AI Explanation, Engine Breakdowns)
+}
+=========================================================================================

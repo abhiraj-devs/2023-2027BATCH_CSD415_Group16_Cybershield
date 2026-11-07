@@ -1,0 +1,62 @@
+CYBERSHIELD AI - MODULE 8: AUTHENTICATION & ROLE-BASED ACCESS CONTROL (RBAC)
+=========================================================================================
+Module ID: MOD-AUTH-08
+Component Paths:
+  - /src/context/AuthContext.tsx
+  - /src/components/AuthModal.tsx
+Backend & Security Rules:
+  - /firestore.rules
+  - /firebase-blueprint.json
+  - /firebase-applet-config.json
+  - POST /api/auth/register
+  - POST /api/auth/login
+  - GET  /api/auth/me
+
+-----------------------------------------------------------------------------------------
+1. OVERVIEW & PURPOSE
+-----------------------------------------------------------------------------------------
+The Authentication & RBAC Module governs identity verification, credential security, and
+permission boundaries across the CyberShield AI platform. It supports direct email/password
+authentication, Google OAuth identity federation, and seamless persistence to Google Cloud
+Firestore without cumbersome intermediary OTP gates.
+
+-----------------------------------------------------------------------------------------
+2. KEY FEATURES & CAPABILITIES
+-----------------------------------------------------------------------------------------
+1. Direct Multi-Factor & Direct Identity Workflows:
+   - Eliminates tedious multi-step OTP delays, delivering instant authenticated access upon
+     valid credential submission.
+   - Google Sign-In with popup-based OAuth federated access.
+2. Cloud Firestore Profile Persistence:
+   - Writes user profile state directly to `/users/{userId}` upon account creation.
+   - Designates administrative users and marks permissions in `/admins/{userId}`.
+   - Enforces strict Firestore Security Rules checking `isSignedIn()` and ownership
+     validations.
+3. Password Complexity Enforcement:
+   - Dynamic real-time password criteria evaluator checking:
+     * Minimum 8 characters
+     * Uppercase letter [A-Z]
+     * Lowercase letter [a-z]
+     * Number [0-9]
+     * Special character [!@#$%^&*]
+   - Visual strength meter (Weak -> Fair -> Good -> Strong).
+4. Role-Based Access Control (RBAC):
+   - Administrator: Can manage settings, configure webhook integrations, review crowdsourced
+     threat submissions, and view system-wide telemetries.
+   - SOC Analyst: Can perform scans, view user-scoped history, and inspect threat feeds.
+   - Guest / Visitor: Can execute real-time dual-engine scans with transient in-memory results.
+
+-----------------------------------------------------------------------------------------
+3. DATA MODELS & STRUCTURES
+-----------------------------------------------------------------------------------------
+User Profile Object:
+{
+  id: string,
+  uid?: string,
+  name: string,
+  email: string,
+  role: "Administrator" | "SOC Analyst",
+  emailVerified: boolean,
+  createdAt: string
+}
+=========================================================================================

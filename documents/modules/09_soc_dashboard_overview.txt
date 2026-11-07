@@ -1,0 +1,57 @@
+CYBERSHIELD AI - MODULE 9: CENTRAL SOC COMMAND CENTER & DASHBOARD
+=========================================================================================
+Module ID: MOD-DASH-09
+Component Path: /src/components/DashboardView.tsx
+Backend Routes:
+  - GET /api/dashboard/summary
+  - GET /api/dashboard/stats
+
+-----------------------------------------------------------------------------------------
+1. OVERVIEW & PURPOSE
+-----------------------------------------------------------------------------------------
+The Central SOC Command Center is the main executive dashboard for CyberShield AI. It aggregates
+telemetry, detection metrics, active incidents, and threat intelligence into a high-density,
+real-time visual pane designed specifically for 24/7 Security Operations Center teams.
+
+-----------------------------------------------------------------------------------------
+2. KEY FEATURES & CAPABILITIES
+-----------------------------------------------------------------------------------------
+1. Overall System Posture State Indicator:
+   - Evaluates real-time health dynamically:
+     * "Operational" (Normal activity, green status).
+     * "Elevated Threat Activity" (Active phishing or network anomaly events detected).
+     * "Critical Security Incident" (Multiple critical alerts or confirmed active malware).
+2. Key Operational Metrics & KPI Counters:
+   - Total Scans Executed across URLs and Binaries.
+   - Phishing Threats Neutralized.
+   - Malware Infiltrations Blocked.
+   - Active High-Score Network Anomalies.
+   - Critical Unacknowledged Alerts.
+3. Interactive Telemetry Visualizations (Recharts):
+   - Threat Volume Time-Series: Area chart tracking hourly threat events across network,
+     malware, and phishing vectors.
+   - Threat Category Distribution: Donut / Pie chart illustrating proportional breakdown
+     between Phishing, Malware, Reconnaissance, and C2 activity.
+4. Quick Scan & Executive Export:
+   - One-Click Quick Launch to jump directly to Phishing or Malware scanning.
+   - Executive CSV / Report Export: Generates downloadable audit logs summarizing active
+     threats, timestamps, and severity levels.
+5. Adaptive Ergonomic Dark/Light Theming:
+   - Defaults to low-eye-strain SOC dark mode (#111111 background with high-contrast emerald,
+     blue, amber, and rose indicators).
+
+-----------------------------------------------------------------------------------------
+3. DATA MODELS & STRUCTURES
+-----------------------------------------------------------------------------------------
+DashboardSummary Object:
+{
+  totalScans: number,
+  phishingThreats: number,
+  malwareThreats: number,
+  activeAnomalies: number,
+  criticalAlerts: number,
+  threatIntelItems: number,
+  systemStatus: "Operational" | "Elevated Threat Activity" | "Critical Security Incident",
+  lastSync: string (ISO 8601)
+}
+=========================================================================================

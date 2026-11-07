@@ -5,7 +5,6 @@ import { createServer as createViteServer } from "vite";
 import crypto from "crypto";
 import axios from "axios";
 import { GoogleGenAI } from "@google/genai";
-import nodemailer from "nodemailer";
 const app = express();
 const PORT = 3000;
 
